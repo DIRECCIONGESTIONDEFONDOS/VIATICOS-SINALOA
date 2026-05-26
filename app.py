@@ -5,7 +5,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
 from email import encoders
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 from openpyxl import load_workbook
 from openpyxl.drawing.image import Image as XLImage
@@ -23,6 +23,7 @@ GITHUB_TOKEN = os.environ.get('GITHUB_TOKEN', '')
 GITHUB_OWNER = os.environ.get('GITHUB_OWNER', 'DIRECCIONGESTIONDEFONDOS')
 GITHUB_REPO  = os.environ.get('GITHUB_REPO',  'VIATICOS-SINALOA')
 DATA_FILE    = 'data.json'
+NET_TIMEOUT  = int(os.environ.get('NET_TIMEOUT', '20'))
 
 ADMIN_EMAILS = [
     e.strip().lower()
@@ -189,7 +190,7 @@ def gh_get_data():
     url = f'https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/contents/{DATA_FILE}'
     req = urllib.request.Request(url, headers=gh_headers())
     try:
-        with urllib.request.urlopen(req) as r:
+        with urllib.request.urlopen(req, timeout=NET_TIMEOUT) as r:
             resp = json.loads(r.read())
             content = base64.b64decode(resp['content']).decode('utf-8')
             data = json.loads(content)
@@ -222,7 +223,7 @@ def gh_save_data(data):
     url = f'https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/contents/{DATA_FILE}'
     req = urllib.request.Request(url, data=json.dumps(payload).encode(),
                                   headers=gh_headers(), method='PUT')
-    with urllib.request.urlopen(req) as r:
+    with urllib.request.urlopen(req, timeout=NET_TIMEOUT) as r:
         return json.loads(r.read())
 
 def siguiente_folio():
@@ -411,7 +412,7 @@ def enviar_correo(dest, asunto, html, xlsx_bytes, filename):
     encoders.encode_base64(adj)
     adj.add_header('Content-Disposition','attachment',filename=filename)
     msg.attach(adj)
-    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as s:
+    with smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=NET_TIMEOUT) as s:
         s.login(GMAIL_USER, GMAIL_PASS)
         s.sendmail(GMAIL_USER, dest, msg.as_string())
 
@@ -688,6 +689,7 @@ class Handler(BaseHTTPRequestHandler):
 
         # ── GENERAR DOCUMENTO ──────────────────────────────────────────────────
         if path in ('/generar/solicitud', '/generar/reposicion'):
+            print(f"Generando documento: {path} por {sess.get('email','')}", flush=True)
             try:
                 es_rep = path == '/generar/reposicion'
                 folio, _ = siguiente_folio()
@@ -700,7 +702,9 @@ class Handler(BaseHTTPRequestHandler):
                         d['fecha_exp'] = fe.strftime('%d/%m/%Y')
                     except: pass
 
+                print('Generando Excel...', flush=True)
                 xlsx   = generar_reposicion(d) if es_rep else generar_solicitud(d)
+                print('Excel generado.', flush=True)
                 tipo   = d.get('titulo','SOLICITUD DE OFICIO DE COMISIÓN')
                 total  = float(d.get('total', 0))
                 nom    = d.get('nombre','').replace(' ','_')[:18]
@@ -708,6 +712,7 @@ class Handler(BaseHTTPRequestHandler):
                 prefix = 'Reposicion' if es_rep else 'Solicitud'
                 fname  = f"{prefix}_{nom}_{dst}_{folio.replace('/','-')}.xlsx"
 
+                print('Procesando correo...', flush=True)
                 # Correo
                 email_dest = d.get('email_destinatario','').strip()
                 email_ok = False; email_err = ''
@@ -719,6 +724,7 @@ class Handler(BaseHTTPRequestHandler):
                     except Exception as e:
                         email_err = str(e)
 
+                print('Guardando historial...', flush=True)
                 # Guardar en historial
                 try:
                     data = gh_get_data()
@@ -744,6 +750,7 @@ class Handler(BaseHTTPRequestHandler):
                 except Exception as e:
                     print(f"Error guardando historial: {e}")
 
+                print('Enviando respuesta al navegador...', flush=True)
                 self.send_json({
                     'filename': fname, 'folio': folio,
                     'fecha_exp': d.get('fecha_exp',''),
@@ -760,4 +767,4 @@ class Handler(BaseHTTPRequestHandler):
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     print(f"Servidor iniciado en puerto {port}")
-    HTTPServer(('0.0.0.0', port), Handler).serve_forever()
+    ThreadingHTTPServer(('0.0.0.0', port), Handler).serve_forever()
