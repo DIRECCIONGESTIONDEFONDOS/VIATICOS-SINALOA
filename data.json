@@ -38,6 +38,19 @@
       "auth1_cargo": "SUBSECRETARIO DE GESTION DE FONDOS Y FINANCIAMIENTO",
       "auth2_nombre": "ING. XOCHITL FELIX CUADRAS",
       "auth2_cargo": "COORDINADORA ADMINISTRATIVA"
+    },
+    {
+      "id": "p_1779833975998",
+      "nombre": "JOSE ANGEL LOPEZ FIERRO",
+      "rfc": "LPAOJFPAGJ",
+      "email": "angel.lopez@sinaloa.gob.mx",
+      "cargo": "SUB",
+      "rango": "secretario",
+      "area": "SUB",
+      "auth1_nombre": "",
+      "auth1_cargo": "",
+      "auth2_nombre": "",
+      "auth2_cargo": ""
     }
   ],
   "programas": [
