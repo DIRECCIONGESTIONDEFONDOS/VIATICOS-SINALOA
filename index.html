@@ -470,7 +470,13 @@ input[readonly]{background:#f8f9fb;color:var(--muted);}
     <div class="card" id="docSummary" style="display:none">
       <div class="card-title">Resumen</div>
       <div class="summary-box" id="summaryBox"></div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;" id="emailInfo"></div>
+      <div id="emailToggleRow" style="display:none;margin-bottom:12px;">
+        <div class="toggle-row" style="margin-bottom:0;" onclick="toggleEnviarCorreo()">
+          <div><div class="toggle-label" style="font-size:13px;">✉️ Enviar por correo al comisionado</div>
+          <div class="toggle-sub" id="emailInfo">—</div></div>
+          <div class="toggle" id="toggle-email"></div>
+        </div>
+      </div>
       <button class="btn-excel" id="btnExcel" onclick="generarYEnviar()">
         <span id="excelSpinner" class="spinner"></span>
         <span id="excelBtnText">📊 Generar Excel y enviar correo</span>
@@ -826,68 +832,15 @@ async function cargarDatos(){
     if(r.status===401){hideLoading();doLogout();return;}
     const data=await r.json();
     perfiles=data.perfiles||[];
-    const programasOriginales=data.programas||[];
-    programas=asegurarProgramasBase(programasOriginales);
+    programas=data.programas||[];
     usuarios=data.usuarios||[];
-    if(currentRole==='admin' && JSON.stringify(programas)!==JSON.stringify(programasOriginales)){
-      try{ await guardarDatos({programas}); }catch(e){ console.warn('No se pudo guardar programa base:', e); }
+    if(currentRole==='admin'){
+      historialAdmin=data.historial||[];
     }
-  }catch(e){perfiles=[];programas=[];}
+  }catch(e){perfiles=[];programas=[];console.error('Error cargando datos:',e);}
   hideLoading();
   renderPerfiles();renderProgramas();poblarSelects();
   if(currentRole==='admin')renderUsuarios();
-}
-
-async function guardarDatos(payload){
-  const r = await fetch(`${SERVER}/api/save`,{
-    method:'POST',
-    headers:authHeaders(),
-    body:JSON.stringify(payload)
-  });
-  let data = {};
-  try { data = await r.json(); } catch(e) {}
-  if(r.status===401){
-    doLogout();
-    throw new Error('Tu sesión expiró. Inicia sesión nuevamente.');
-  }
-  if(!r.ok || data.ok===false){
-    throw new Error(data.error || 'No se pudo guardar la información.');
-  }
-  return data;
-}
-
-// Programa base para que siempre aparezca en el catálogo
-function asegurarProgramasBase(lista){
-  const arr = Array.isArray(lista) ? [...lista] : [];
-  const idx = arr.findIndex(p => String(p?.nombre||'').trim().toLowerCase() === 'equipa sinaloa' || String(p?.id||'') === 'prog_equipa_sinaloa');
-
-  const equipaBase = {
-    id:'prog_equipa_sinaloa',
-    nombre:'EQUIPA SINALOA',
-    motivos:[
-      'Entrega de equipamiento productivo a personas beneficiarias',
-      'Supervisión y seguimiento a beneficiarios del programa',
-      'Validación de solicitudes y expedientes del programa',
-      'Levantamiento de información para integración de padrones',
-      'Reunión de coordinación operativa del programa'
-    ]
-  };
-
-  if(idx === -1){
-    arr.unshift(equipaBase);
-  } else {
-    arr[idx] = {
-      ...equipaBase,
-      ...arr[idx],
-      id: arr[idx].id || 'prog_equipa_sinaloa',
-      nombre: arr[idx].nombre || 'EQUIPA SINALOA',
-      motivos: Array.isArray(arr[idx].motivos) ? arr[idx].motivos : equipaBase.motivos
-    };
-    // Mover EQUIPA al inicio para que siempre sea visible
-    const [equipa] = arr.splice(idx, 1);
-    arr.unshift(equipa);
-  }
-  return arr;
 }
 
 // ── TABS ──────────────────────────────────────────────────────────────────────
@@ -922,7 +875,7 @@ function actualizarFechas(){
 
 function poblarSelects(){
   perfiles = Array.isArray(perfiles) ? perfiles : [];
-  programas = asegurarProgramasBase(programas);
+  programas = Array.isArray(programas) ? programas : [];
 
   const sp=document.getElementById('selectPersona'),vp=sp.value;
   sp.innerHTML='<option value="">— Seleccionar persona —</option>';
@@ -1041,12 +994,11 @@ async function guardarPerfil(){
       }
       const nuevo={id:'p_'+Date.now(),...datos};
       await guardarDatos({perfiles_add:nuevo});
-      perfiles.push(nuevo);
+      // Reload from server to ensure sync
+      await cargarDatos();
     }
 
     hideLoading();
-    renderPerfiles();
-    poblarSelects();
     cerrarModalPerfil();
     if(editPerfilId===perfilActualId)actualizarBadge(perfilActualId);
   }catch(err){
@@ -1093,7 +1045,7 @@ function editarActual(){if(perfilActualId&&currentRole==='admin')abrirModalPerfi
 
 // ── PROGRAMAS ──────────────────────────────────────────────────────────────────
 function renderProgramas(){
-  programas = asegurarProgramasBase(programas);
+  programas = Array.isArray(programas) ? programas : [];
   programas = programas.map(p => ({
     id: p?.id || ('prog_'+Date.now()+'_'+Math.random().toString(16).slice(2)),
     nombre: p?.nombre || '(Sin nombre)',
@@ -1118,7 +1070,7 @@ function renderProgramas(){
   </div>`).join('');
 }
 function abrirModalPrograma(id){
-  programas = asegurarProgramasBase(programas);
+  programas = Array.isArray(programas) ? programas : [];
   editProgId=id;
   document.getElementById('btnElimProg').style.display=id?'block':'none';
 
@@ -1144,7 +1096,7 @@ async function guardarPrograma(){
   const n=document.getElementById('mProgNombre').value.trim();
   if(!n){alert('Escribe el nombre del programa');return;}
 
-  programas = asegurarProgramasBase(programas);
+  programas = Array.isArray(programas) ? programas : [];
   const motivos=document.getElementById('mProgMotivos').value
     .split(/\r?\n/)
     .map(s=>s.trim())
@@ -1162,7 +1114,7 @@ async function guardarPrograma(){
   }
 
   // Normaliza todos los programas antes de guardar para evitar errores por registros incompletos.
-  programas = asegurarProgramasBase(programas).map(p=>({
+  programas = Array.isArray(programas) ? programas : [].map(p=>({
     id:p?.id || ('prog_'+Date.now()+'_'+Math.random().toString(16).slice(2)),
     nombre:p?.nombre || '(Sin nombre)',
     motivos:Array.isArray(p?.motivos) ? p.motivos : []
@@ -1187,7 +1139,7 @@ async function confirmarElimProg(id){
   }
   if(!confirm('¿Eliminar este programa?'))return;
   programas=(Array.isArray(programas)?programas:[]).filter(p=>p && p.id!==id);
-  programas=asegurarProgramasBase(programas);
+  programas=Array.isArray(programas) ? programas : [];
   showLoading('Eliminando programa...');
   try{
     await guardarDatos({programas});
@@ -1417,11 +1369,29 @@ function prepDoc(){
     ultimoCalculo.rows.map(r=>`<div class="s-row"><span>${r.label}</span><span>${fmt(r.amount)}</span></div>`).join('')+
     `<div class="s-total"><span>TOTAL</span><span>${fmt(ultimoCalculo.total)}</span></div>`;
   const p=perfiles.find(x=>x.id===perfilActualId);
-  document.getElementById('emailInfo').innerHTML=p?.email
-    ?`✉️ Se enviará a: <strong>${p.email}</strong>`
-    :'⚠️ Sin correo — solo se descargará el archivo.';
+  const emailToggleRow=document.getElementById('emailToggleRow');
+  const emailInfo=document.getElementById('emailInfo');
+  if(p?.email){
+    emailToggleRow.style.display='block';
+    emailInfo.textContent=`Se enviará a: ${p.email}`;
+  } else {
+    emailToggleRow.style.display='none';
+  }
   document.getElementById('statusCard').style.display='none';
+  // Reset email toggle
+  enviarCorreoActivo=false;
+  document.getElementById('toggle-email').className='toggle';
+  document.getElementById('excelBtnText').textContent='📊 Generar y descargar Excel';
 }
+
+let enviarCorreoActivo=false;
+function toggleEnviarCorreo(){
+  enviarCorreoActivo=!enviarCorreoActivo;
+  document.getElementById('toggle-email').className='toggle'+(enviarCorreoActivo?' on':'');
+  document.getElementById('excelBtnText').textContent=
+    enviarCorreoActivo?'📊 Generar, descargar y enviar correo':'📊 Generar y descargar Excel';
+}
+
 
 async function generarYEnviar(){
   if(!ultimoCalculo)return;
@@ -1441,7 +1411,7 @@ async function generarYEnviar(){
     fecha_fin:document.getElementById('fechaFin').value,motivo:document.getElementById('motivo').value,
     alimentos:montos.alimentos||null,gasolina:montos.combustible||null,combustible:montos.combustible||null,
     peaje:montos.peajes||null,hospedaje:montos.hospedaje||null,transporte:null,total,
-    email_destinatario:p?.email||'',
+    email_destinatario:(enviarCorreoActivo && p?.email) ? p.email : '',
     auth1_nombre:p?.auth1_nombre||'MTRÔ. FELICIANO CASTRO MELÉNDREZ',
     auth1_cargo:p?.auth1_cargo||'SECRETARIO DE ECONOMÍA',
     auth2_nombre:p?.auth2_nombre||'ING. XOCHITL FÉLIX CUADRAS',
@@ -1466,8 +1436,10 @@ async function generarYEnviar(){
     const a=document.createElement('a');a.href=url;a.download=data.filename;a.click();URL.revokeObjectURL(url);
     const sc=document.getElementById('statusCard'),st=document.getElementById('statusTitle'),sd=document.getElementById('statusDetail');
     sc.className='status-card status-ok';sc.style.display='block';
-    st.textContent=`✅ Documento generado — Folio: ${data.folio}`;
-    sd.textContent=data.email_ok?`Enviado a ${p?.email} · Expedición: ${data.fecha_exp}`:`Descargado. ${data.email_err?'Correo no enviado: '+data.email_err:'Sin correo registrado.'}`;
+    st.textContent=`✅ Documento generado — Folio: ${data.folio} · Expedición: ${data.fecha_exp}`;
+    sd.textContent=data.email_ok
+      ?`📧 Correo enviado a ${p?.email}`
+      :enviarCorreoActivo?`⚠️ No se pudo enviar el correo. El archivo fue descargado.`:`📥 Archivo descargado correctamente.`;
   }catch(e){
     const sc=document.getElementById('statusCard');sc.className='status-card status-err';sc.style.display='block';
     document.getElementById('statusTitle').textContent='❌ Error al generar';

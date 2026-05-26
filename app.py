@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
-import json, os, io, smtplib, base64, urllib.request, urllib.error, hashlib, secrets, traceback, hmac, time
+import json, os, io, base64, urllib.request, urllib.error, urllib.parse, hashlib, secrets, traceback, hmac, time
 from datetime import datetime, timedelta
-from email.mime.multipart import MIMEMultipart
-from email.mime.base import MIMEBase
-from email.mime.text import MIMEText
-from email import encoders
+
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 from openpyxl import load_workbook
@@ -532,21 +529,36 @@ def html_correo(d, total, tipo_doc):
 </table></td></tr></table></body></html>"""
 
 def enviar_correo(dest, asunto, html, xlsx_bytes, filename):
-    msg = MIMEMultipart('mixed')
-    msg['From']    = f"Viáticos SE Sinaloa <{GMAIL_USER}>"
-    msg['To']      = dest
-    msg['Subject'] = asunto
-    alt = MIMEMultipart('alternative')
-    alt.attach(MIMEText(html, 'html', 'utf-8'))
-    msg.attach(alt)
-    adj = MIMEBase('application','vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    adj.set_payload(xlsx_bytes)
-    encoders.encode_base64(adj)
-    adj.add_header('Content-Disposition','attachment',filename=filename)
-    msg.attach(adj)
-    with smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=NET_TIMEOUT) as s:
-        s.login(GMAIL_USER, GMAIL_PASS)
-        s.sendmail(GMAIL_USER, dest, msg.as_string())
+    """Send email via Brevo HTTP API (works on Render free tier)"""
+    BREVO_KEY = os.environ.get('BREVO_API_KEY', '')
+    if not BREVO_KEY:
+        raise Exception('BREVO_API_KEY no configurada')
+    
+    sender_email = os.environ.get('GMAIL_USER', GMAIL_USER)
+    
+    payload = {
+        'sender': {'name': 'Viáticos SE Sinaloa', 'email': sender_email},
+        'to': [{'email': dest}],
+        'subject': asunto,
+        'htmlContent': html,
+        'attachment': [{
+            'content': base64.b64encode(xlsx_bytes).decode(),
+            'name': filename
+        }]
+    }
+    
+    req = urllib.request.Request(
+        'https://api.brevo.com/v3/smtp/email',
+        data=json.dumps(payload).encode('utf-8'),
+        headers={
+            'api-key': BREVO_KEY,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        method='POST'
+    )
+    with urllib.request.urlopen(req) as r:
+        return json.loads(r.read())
 
 # ── HTTP HANDLER ──────────────────────────────────────────────────────────────
 HTML_PATH = os.path.join(BASE_DIR, 'index.html')
