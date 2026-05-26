@@ -29,10 +29,10 @@
   ],
   "programas": [
     {
-      "id": "prog_1779826913537",
+      "id": "prog_1779827723436",
       "nombre": "EQUIPA SINALOA",
       "motivos": [
-        "6131"
+        "23"
       ]
     },
     {
@@ -40,13 +40,6 @@
       "nombre": "NUESTRO TIANGUIS",
       "motivos": [
         "ENTRGE DE EQUIPAMIENTO DE TIANGUIS A BENEFICIARIOS DEL MUNICIPIO"
-      ]
-    },
-    {
-      "id": "prog_1779827723436",
-      "nombre": "EQUIPA SINALOA",
-      "motivos": [
-        "23"
       ]
     },
     {
