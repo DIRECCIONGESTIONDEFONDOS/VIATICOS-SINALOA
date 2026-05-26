@@ -1434,9 +1434,7 @@ async function eliminarSolicitud(folio){
 }
 
 async function confirmarLimpiarHistorial(){
-  if(!confirm('⚠️ ¿Eliminar TODO el historial y reiniciar los folios?
-
-Esto borrará todas las solicitudes de prueba. No se puede deshacer.'))return;
+  if(!confirm('¿Eliminar TODO el historial y reiniciar los folios? Esto borrara todas las solicitudes de prueba. No se puede deshacer.'))return;
   if(!confirm('¿Estás seguro? Se eliminarán TODAS las solicitudes.'))return;
   showLoading('Limpiando historial...');
   try{
