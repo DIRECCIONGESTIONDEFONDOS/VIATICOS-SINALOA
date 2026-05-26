@@ -65,6 +65,12 @@
       "nombre": "ESTEBAN ALONSO LOPEZ FELIX",
       "role": "user",
       "pass_hash": ""
+    },
+    {
+      "email": "lofe001027@gmail.com",
+      "nombre": "ESTEBAN LOPEZ",
+      "role": "user",
+      "pass_hash": ""
     }
   ],
   "historial": [
