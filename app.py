@@ -898,9 +898,14 @@ class Handler(BaseHTTPRequestHandler):
                         email_ok = True
                     except Exception as e:
                         import traceback
-                        email_err = f"{type(e).__name__}: {str(e)}"
+                        # Try to read Brevo response body
+                        brevo_body = ''
+                        try:
+                            brevo_body = e.read().decode('utf-8') if hasattr(e, 'read') else ''
+                        except: pass
+                        email_err = f"{type(e).__name__}: {str(e)} | Brevo: {brevo_body}"
                         print(f"Email error: {email_err}")
-                        print(traceback.format_exc())
+                        print(f"Brevo response body: {brevo_body}")
                         print('ERROR EN CORREO:', flush=True)
                         print(traceback.format_exc(), flush=True)
 
