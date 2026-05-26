@@ -227,6 +227,22 @@
       "email_ok": false,
       "generado_por": "abraham.navarro@sinaloa.gob.mx",
       "timestamp": "2026-05-26T21:36:19.985337"
+    },
+    {
+      "folio": "SE-SSGFF-0015/2026",
+      "fecha_exp": "19/05/2026",
+      "nombre": "OSCAR ABRAHAM NAVARRO LOPEZ",
+      "rfc": "NALO941030",
+      "cargo": "DIRECTOR DE GESTIÓN DE FONDOS",
+      "destino": "Ciudad de México",
+      "fecha_ini": "22/05/2026",
+      "fecha_fin": "22/05/2026",
+      "programa": "EQUIPA SINALOA",
+      "total": 605.0,
+      "tipo": "Oficio",
+      "email_ok": false,
+      "generado_por": "abraham.navarro@sinaloa.gob.mx",
+      "timestamp": "2026-05-26T21:44:09.694210"
     }
   ]
 }
