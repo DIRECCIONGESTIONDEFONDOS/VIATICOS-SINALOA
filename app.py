@@ -530,9 +530,10 @@ def html_correo(d, total, tipo_doc):
 
 def enviar_correo(dest, asunto, html, xlsx_bytes, filename):
     """Send email via Brevo HTTP API (works on Render free tier)"""
-    BREVO_KEY = os.environ.get('BREVO_API_KEY', '')
+    BREVO_KEY = os.environ.get('BREVO_API_KEY', '').strip()
+    print(f"BREVO_KEY presente: {bool(BREVO_KEY)}, longitud: {len(BREVO_KEY)}, primeros 20: {BREVO_KEY[:20] if BREVO_KEY else 'N/A'}")
     if not BREVO_KEY:
-        raise Exception('BREVO_API_KEY no configurada')
+        raise Exception('BREVO_API_KEY no configurada en variables de entorno')
     
     sender_email = os.environ.get('GMAIL_USER', GMAIL_USER)
     
@@ -551,7 +552,7 @@ def enviar_correo(dest, asunto, html, xlsx_bytes, filename):
         'https://api.brevo.com/v3/smtp/email',
         data=json.dumps(payload).encode('utf-8'),
         headers={
-            'api-key': BREVO_KEY,
+            'api-key': BREVO_KEY.strip(),
             'Content-Type': 'application/json',
             'Accept': 'application/json'
         },
