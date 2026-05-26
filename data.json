@@ -59,6 +59,12 @@
       "pass_hash": "7a994bf200f499fcc4557ddb9900191a655947a8691b82f3602bd9f8c24acf35",
       "role": "admin",
       "nombre": "Dirección Gestión de Fondos"
+    },
+    {
+      "email": "lofe001027@gmail.com",
+      "nombre": "ESTEBAN ALONSO LOPEZ FELIX",
+      "role": "user",
+      "pass_hash": ""
     }
   ],
   "historial": [
