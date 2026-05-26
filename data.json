@@ -24,6 +24,20 @@
     }
   ],
   "folios": {
-    "2026": 2
-  }
+    "2026": 3
+  },
+  "usuarios": [
+    {
+      "email": "abraham.navarro@sinaloa.gob.mx",
+      "pass_hash": "7a994bf200f499fcc4557ddb9900191a655947a8691b82f3602bd9f8c24acf35",
+      "role": "admin",
+      "nombre": "Abraham Navarro"
+    },
+    {
+      "email": "direcciongestiondefondos@gmail.com",
+      "pass_hash": "7a994bf200f499fcc4557ddb9900191a655947a8691b82f3602bd9f8c24acf35",
+      "role": "admin",
+      "nombre": "Dirección Gestión de Fondos"
+    }
+  ]
 }
