@@ -12,6 +12,19 @@
       "auth1_cargo": "SUBSECRETARIO DE GESTIÓN DE FONDOS Y FINANCIAMIENTO",
       "auth2_nombre": "ING. XÓCHITL FÉLIX CUADRAS",
       "auth2_cargo": "COORDINADORA ADMINISTRATIVA"
+    },
+    {
+      "id": "p_1779829775320",
+      "nombre": "este",
+      "rfc": "NL",
+      "email": "lnl",
+      "cargo": "lnl",
+      "rango": "jefe",
+      "area": "nln",
+      "auth1_nombre": "1",
+      "auth1_cargo": "6331",
+      "auth2_nombre": "63",
+      "auth2_cargo": "31"
     }
   ],
   "programas": [
