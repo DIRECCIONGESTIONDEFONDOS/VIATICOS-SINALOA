@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import json, os, io, smtplib, base64, urllib.request, urllib.error, hashlib, secrets
+import json, os, io, smtplib, base64, urllib.request, urllib.error, hashlib, secrets, hmac, time
 from datetime import datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
@@ -33,69 +33,54 @@ ADMIN_EMAILS = [
     if e.strip()
 ]
 DEFAULT_ADMIN_PASS = os.environ.get('ADMIN_PASSWORD', 'DGFADMIN')
-RESET_ADMIN_PASSWORD = os.environ.get('RESET_ADMIN_PASSWORD', 'false').lower() == 'true'
+RESET_ADMIN_PASSWORD = os.environ.get('RESET_ADMIN_PASSWORD', 'false').strip().lower() in ('1', 'true', 'yes', 'si', 'sí')
 
-# ── SESIONES EN MEMORIA ───────────────────────────────────────────────────────
-sessions = {}  # token -> {email, role, expires}
+# Clave para firmar sesiones sin guardarlas en memoria.
+# Configúrala en Render como SESSION_SECRET.
+SESSION_SECRET = os.environ.get('SESSION_SECRET') or hashlib.sha256(
+    (GITHUB_TOKEN or 'viaticos-sinaloa').encode('utf-8')
+).hexdigest()
 
+# ── SESIONES SIN MEMORIA / TOKEN FIRMADO ──────────────────────────────────────
 def hash_pass(p):
     return hashlib.sha256(p.encode()).hexdigest()
 
-def asegurar_admins(data):
-    """Garantiza que los correos administradores existan y tengan rol admin."""
-    data.setdefault('usuarios', [])
-    nombres_admin = {
-        'abraham.navarro@sinaloa.gob.mx': 'Abraham Navarro',
-        'direcciongestiondefondos@gmail.com': 'Dirección Gestión de Fondos'
-    }
+def _b64url_encode(raw):
+    return base64.urlsafe_b64encode(raw).decode('utf-8').rstrip('=')
 
-    for correo in ADMIN_EMAILS:
-        usuario = next(
-            (u for u in data['usuarios'] if str(u.get('email', '')).lower().strip() == correo),
-            None
-        )
-
-        if not usuario:
-            data['usuarios'].append({
-                'email': correo,
-                'pass_hash': hash_pass(DEFAULT_ADMIN_PASS),
-                'role': 'admin',
-                'nombre': nombres_admin.get(correo, correo)
-            })
-        else:
-            usuario['email'] = correo
-            usuario['role'] = 'admin'
-            usuario['nombre'] = usuario.get('nombre') or nombres_admin.get(correo, correo)
-
-            # Solo reinicia la contraseña si se activa temporalmente RESET_ADMIN_PASSWORD=true
-            # o si el usuario todavía no tenía contraseña.
-            if RESET_ADMIN_PASSWORD or not usuario.get('pass_hash'):
-                usuario['pass_hash'] = hash_pass(DEFAULT_ADMIN_PASS)
-
-    return data
+def _b64url_decode(txt):
+    padding = '=' * (-len(txt) % 4)
+    return base64.urlsafe_b64decode((txt + padding).encode('utf-8'))
 
 def create_session(email, role):
-    token = secrets.token_hex(32)
-    sessions[token] = {
-        'email': email, 'role': role,
-        'expires': (datetime.now() + timedelta(hours=8)).isoformat()
+    payload = {
+        'email': str(email).strip().lower(),
+        'role': role or 'user',
+        'exp': int(time.time()) + (8 * 60 * 60)
     }
-    return token
+    payload_b64 = _b64url_encode(json.dumps(payload, separators=(',', ':')).encode('utf-8'))
+    sig = hmac.new(SESSION_SECRET.encode('utf-8'), payload_b64.encode('utf-8'), hashlib.sha256).digest()
+    return f"{payload_b64}.{_b64url_encode(sig)}"
 
 def get_session(token):
-    if not token or token not in sessions:
+    if not token or '.' not in token:
         return None
-    s = sessions[token]
-    if datetime.now() > datetime.fromisoformat(s['expires']):
-        del sessions[token]
+    try:
+        payload_b64, sig_b64 = token.split('.', 1)
+        expected_sig = hmac.new(SESSION_SECRET.encode('utf-8'), payload_b64.encode('utf-8'), hashlib.sha256).digest()
+        actual_sig = _b64url_decode(sig_b64)
+        if not hmac.compare_digest(expected_sig, actual_sig):
+            return None
+        payload = json.loads(_b64url_decode(payload_b64).decode('utf-8'))
+        if int(payload.get('exp', 0)) < int(time.time()):
+            return None
+        return {'email': payload.get('email', '').lower(), 'role': payload.get('role', 'user')}
+    except Exception:
         return None
-    return s
 
 def clean_sessions():
-    now = datetime.now()
-    expired = [t for t, s in sessions.items() if now > datetime.fromisoformat(s['expires'])]
-    for t in expired:
-        del sessions[t]
+    # Compatibilidad: ya no hay sesiones en memoria que limpiar.
+    return
 
 # ── DÍAS HÁBILES ──────────────────────────────────────────────────────────────
 FESTIVOS = {(1,1),(2,5),(3,21),(9,16),(11,2),(11,20),(12,25)}
@@ -160,6 +145,46 @@ def gh_headers():
         'User-Agent': 'viaticos-app'
     }
 
+def asegurar_admins(data):
+    if not isinstance(data, dict):
+        data = {}
+    data.setdefault('perfiles', [])
+    data.setdefault('programas', [])
+    data.setdefault('folios', {})
+    data.setdefault('historial', [])
+    data.setdefault('usuarios', [])
+
+    changed = False
+    nombres_default = {
+        'abraham.navarro@sinaloa.gob.mx': 'Abraham Navarro',
+        'direcciongestiondefondos@gmail.com': 'Dirección Gestión de Fondos'
+    }
+
+    for correo in ADMIN_EMAILS:
+        usuario = next((u for u in data['usuarios'] if str(u.get('email', '')).strip().lower() == correo), None)
+        if not usuario:
+            data['usuarios'].append({
+                'email': correo,
+                'pass_hash': hash_pass(DEFAULT_ADMIN_PASS),
+                'role': 'admin',
+                'nombre': nombres_default.get(correo, correo)
+            })
+            changed = True
+        else:
+            if usuario.get('role') != 'admin':
+                usuario['role'] = 'admin'
+                changed = True
+            if RESET_ADMIN_PASSWORD or not usuario.get('pass_hash'):
+                nuevo_hash = hash_pass(DEFAULT_ADMIN_PASS)
+                if usuario.get('pass_hash') != nuevo_hash:
+                    usuario['pass_hash'] = nuevo_hash
+                    changed = True
+            if not usuario.get('nombre'):
+                usuario['nombre'] = nombres_default.get(correo, correo)
+                changed = True
+
+    return data, changed
+
 def gh_get_data():
     url = f'https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/contents/{DATA_FILE}'
     req = urllib.request.Request(url, headers=gh_headers())
@@ -169,31 +194,24 @@ def gh_get_data():
             content = base64.b64decode(resp['content']).decode('utf-8')
             data = json.loads(content)
             data['_sha'] = resp['sha']
-            return asegurar_admins(data)
+            data, changed = asegurar_admins(data)
+            if changed:
+                saved = gh_save_data(data.copy())
+                if isinstance(saved, dict) and saved.get('content', {}).get('sha'):
+                    data['_sha'] = saved['content']['sha']
+            return data
     except urllib.error.HTTPError as e:
         if e.code == 404:
-            # Init with default admin users
-            return {
+            data = {
                 'perfiles': [],
                 'programas': [],
                 'folios': {},
                 'historial': [],
-                'usuarios': [
-                    {
-                        'email': 'abraham.navarro@sinaloa.gob.mx',
-                        'pass_hash': hash_pass(DEFAULT_ADMIN_PASS),
-                        'role': 'admin',
-                        'nombre': 'Abraham Navarro'
-                    },
-                    {
-                        'email': 'direcciongestiondefondos@gmail.com',
-                        'pass_hash': hash_pass(DEFAULT_ADMIN_PASS),
-                        'role': 'admin',
-                        'nombre': 'Dirección Gestión de Fondos'
-                    }
-                ],
+                'usuarios': [],
                 '_sha': None
             }
+            data, _ = asegurar_admins(data)
+            return data
         raise
 
 def gh_save_data(data):
