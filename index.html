@@ -826,8 +826,12 @@ async function cargarDatos(){
     if(r.status===401){hideLoading();doLogout();return;}
     const data=await r.json();
     perfiles=data.perfiles||[];
-    programas=data.programas||[];
+    const programasOriginales=data.programas||[];
+    programas=asegurarProgramasBase(programasOriginales);
     usuarios=data.usuarios||[];
+    if(currentRole==='admin' && JSON.stringify(programas)!==JSON.stringify(programasOriginales)){
+      try{ await guardarDatos({programas}); }catch(e){ console.warn('No se pudo guardar programa base:', e); }
+    }
   }catch(e){perfiles=[];programas=[];}
   hideLoading();
   renderPerfiles();renderProgramas();poblarSelects();
@@ -835,9 +839,41 @@ async function cargarDatos(){
 }
 
 async function guardarDatos(payload){
-  try{
-    await fetch(`${SERVER}/api/save`,{method:'POST',headers:authHeaders(),body:JSON.stringify(payload)});
-  }catch(e){console.error('Error guardando:',e);}
+  const r = await fetch(`${SERVER}/api/save`,{
+    method:'POST',
+    headers:authHeaders(),
+    body:JSON.stringify(payload)
+  });
+  let data = {};
+  try { data = await r.json(); } catch(e) {}
+  if(r.status===401){
+    doLogout();
+    throw new Error('Tu sesión expiró. Inicia sesión nuevamente.');
+  }
+  if(!r.ok || data.ok===false){
+    throw new Error(data.error || 'No se pudo guardar la información.');
+  }
+  return data;
+}
+
+// Programa base para que siempre aparezca en el catálogo
+function asegurarProgramasBase(lista){
+  const arr = Array.isArray(lista) ? [...lista] : [];
+  const existeEquipa = arr.some(p => String(p.nombre||'').trim().toLowerCase().includes('equipa'));
+  if(!existeEquipa){
+    arr.unshift({
+      id:'prog_equipa_sinaloa',
+      nombre:'EQUIPA SINALOA',
+      motivos:[
+        'Entrega de equipamiento productivo a personas beneficiarias',
+        'Supervisión y seguimiento a beneficiarios del programa',
+        'Validación de solicitudes y expedientes del programa',
+        'Levantamiento de información para integración de padrones',
+        'Reunión de coordinación operativa del programa'
+      ]
+    });
+  }
+  return arr;
 }
 
 // ── TABS ──────────────────────────────────────────────────────────────────────
@@ -928,23 +964,50 @@ async function guardarPerfil(){
   const c=document.getElementById('mCargo').value.trim();
   const rg=document.getElementById('mRango').value;
   if(!n||!r||!e||!c||!rg){alert('Completa los campos obligatorios (*)');return;}
-  const datos={nombre:n,rfc:r,email:e,cargo:c,rango:rg,area:document.getElementById('mArea').value.trim(),
-    auth1_nombre:document.getElementById('mAuth1n').value.trim(),auth1_cargo:document.getElementById('mAuth1c').value.trim(),
-    auth2_nombre:document.getElementById('mAuth2n').value.trim(),auth2_cargo:document.getElementById('mAuth2c').value.trim()};
+
+  const datos={
+    nombre:n,
+    rfc:r,
+    email:e,
+    cargo:c,
+    rango:rg,
+    area:document.getElementById('mArea').value.trim(),
+    auth1_nombre:document.getElementById('mAuth1n').value.trim(),
+    auth1_cargo:document.getElementById('mAuth1c').value.trim(),
+    auth2_nombre:document.getElementById('mAuth2n').value.trim(),
+    auth2_cargo:document.getElementById('mAuth2c').value.trim()
+  };
+
   showLoading('Guardando perfil...');
-  if(currentRole==='admin'){
-    if(editPerfilId){const i=perfiles.findIndex(x=>x.id===editPerfilId);if(i>=0)perfiles[i]={...perfiles[i],...datos};}
-    else perfiles.push({id:'p_'+Date.now(),...datos});
-    await guardarDatos({perfiles});
-  } else {
-    // Usuario normal: solo puede agregar
-    if(editPerfilId){hideLoading();alert('Solo los administradores pueden editar perfiles existentes.');return;}
-    const nuevo={id:'p_'+Date.now(),...datos};
-    await guardarDatos({perfiles_add:nuevo});
-    perfiles.push(nuevo);
+  try{
+    if(currentRole==='admin'){
+      if(editPerfilId){
+        const i=perfiles.findIndex(x=>x.id===editPerfilId);
+        if(i>=0) perfiles[i]={...perfiles[i],...datos};
+      } else {
+        perfiles.push({id:'p_'+Date.now(),...datos});
+      }
+      await guardarDatos({perfiles});
+    } else {
+      if(editPerfilId){
+        hideLoading();
+        alert('Solo los administradores pueden editar perfiles existentes.');
+        return;
+      }
+      const nuevo={id:'p_'+Date.now(),...datos};
+      await guardarDatos({perfiles_add:nuevo});
+      perfiles.push(nuevo);
+    }
+
+    hideLoading();
+    renderPerfiles();
+    poblarSelects();
+    cerrarModalPerfil();
+    if(editPerfilId===perfilActualId)actualizarBadge(perfilActualId);
+  }catch(err){
+    hideLoading();
+    alert('No se pudo guardar el perfil: '+err.message);
   }
-  hideLoading();renderPerfiles();poblarSelects();cerrarModalPerfil();
-  if(editPerfilId===perfilActualId)actualizarBadge(perfilActualId);
 }
 async function confirmarElimPerfil(id){
   if(currentRole!=='admin'){alert('Solo los administradores pueden eliminar perfiles.');return;}
@@ -1008,11 +1071,26 @@ function cerrarModalPrograma(){document.getElementById('modalPrograma').classLis
 async function guardarPrograma(){
   const n=document.getElementById('mProgNombre').value.trim();
   if(!n){alert('Escribe el nombre del programa');return;}
-  const motivos=document.getElementById('mProgMotivos').value.split('\n').map(s=>s.trim()).filter(Boolean);
-  if(editProgId){const i=programas.findIndex(x=>x.id===editProgId);if(i>=0)programas[i]={...programas[i],nombre:n,motivos};}
-  else programas.push({id:'prog_'+Date.now(),nombre:n,motivos});
-  showLoading('Guardando...');await guardarDatos({programas});hideLoading();
-  renderProgramas();poblarSelects();cerrarModalPrograma();
+  const motivos=document.getElementById('mProgMotivos').value.split('\\n').map(s=>s.trim()).filter(Boolean);
+
+  if(editProgId){
+    const i=programas.findIndex(x=>x.id===editProgId);
+    if(i>=0) programas[i]={...programas[i],nombre:n,motivos};
+  } else {
+    programas.push({id:'prog_'+Date.now(),nombre:n,motivos});
+  }
+
+  showLoading('Guardando programa...');
+  try{
+    await guardarDatos({programas});
+    hideLoading();
+    renderProgramas();
+    poblarSelects();
+    cerrarModalPrograma();
+  }catch(err){
+    hideLoading();
+    alert('No se pudo guardar el programa: '+err.message);
+  }
 }
 async function confirmarElimProg(id){
   if(!confirm('¿Eliminar este programa?'))return;
