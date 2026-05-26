@@ -1056,11 +1056,10 @@ function abrirModalUsuario(email){
     document.getElementById('mUsrTitle').textContent='Editar usuario';
     document.getElementById('mUsrNombre').value=u?.nombre||'';
     document.getElementById('mUsrEmail').value=u?.email||'';
-    document.getElementById('mUsrPass').value='';
     document.getElementById('mUsrRole').value=u?.role||'user';
   } else {
     document.getElementById('mUsrTitle').textContent='Nuevo usuario';
-    ['mUsrNombre','mUsrEmail','mUsrPass'].forEach(i=>document.getElementById(i).value='');
+    ['mUsrNombre','mUsrEmail'].forEach(i=>document.getElementById(i).value='');
     document.getElementById('mUsrRole').value='user';
   }
   document.getElementById('modalUsuario').classList.add('open');
@@ -1265,6 +1264,13 @@ async function generarYEnviar(){
   const ep=docType==='repos'?`${SERVER}/generar/reposicion`:`${SERVER}/generar/solicitud`;
   try{
     const resp=await fetch(ep,{method:'POST',headers:authHeaders(),body:JSON.stringify(payload)});
+    if(resp.status===401){
+      localStorage.removeItem('viaticos_token');
+      localStorage.removeItem('viaticos_role');
+      localStorage.removeItem('viaticos_email');
+      localStorage.removeItem('viaticos_nombre');
+      throw new Error('Tu sesión expiró. Cierra sesión e inicia nuevamente.');
+    }
     if(!resp.ok)throw new Error('Error '+resp.status);
     const data=await resp.json();
     if(data.error)throw new Error(data.error);
