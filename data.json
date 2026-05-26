@@ -339,6 +339,22 @@
       "email_ok": true,
       "generado_por": "lofe001027@gmail.com",
       "timestamp": "2026-05-26T22:10:34.245038"
+    },
+    {
+      "folio": "SE-SSGFF-0020/2026",
+      "fecha_exp": "22/05/2026",
+      "nombre": "JOSE ANGEL LOPEZ FIERRO",
+      "rfc": "LPAOJFPAGJ",
+      "cargo": "SUB",
+      "destino": "Los Mochis",
+      "fecha_ini": "27/05/2026",
+      "fecha_fin": "28/05/2026",
+      "programa": "EQUIPA SINALOA",
+      "total": 5050.0,
+      "tipo": "Oficio",
+      "email_ok": true,
+      "generado_por": "angel.lopez@sinaloa.gob.mx",
+      "timestamp": "2026-05-26T22:21:11.304688"
     }
   ]
 }
