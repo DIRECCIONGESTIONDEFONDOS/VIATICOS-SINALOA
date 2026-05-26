@@ -9,6 +9,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse
 from openpyxl import load_workbook
 from openpyxl.drawing.image import Image as XLImage
+from openpyxl.utils import get_column_letter
 
 BASE_DIR   = os.path.dirname(os.path.abspath(__file__))
 PTPL_SOL   = os.path.join(BASE_DIR, 'plantillas', 'Solicitud_plantilla.xlsx')
