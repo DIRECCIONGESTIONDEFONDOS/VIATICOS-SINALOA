@@ -1,43 +1,73 @@
 #!/usr/bin/env python3
-import json, os, io, smtplib, base64, urllib.request, urllib.error
+import json, os, io, smtplib, base64, urllib.request, urllib.error, hashlib, secrets
 from datetime import datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
 from email import encoders
 from http.server import HTTPServer, BaseHTTPRequestHandler
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
 from openpyxl import load_workbook
 from openpyxl.drawing.image import Image as XLImage
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl.utils import get_column_letter
 
-BASE_DIR   = os.path.dirname(os.path.abspath(__file__))
-PTPL_SOL   = os.path.join(BASE_DIR, 'plantillas', 'Solicitud_plantilla.xlsx')
-PTPL_REP   = os.path.join(BASE_DIR, 'plantillas', 'Reposicion_plantilla.xlsx')
-LOGO_PATH  = os.path.join(BASE_DIR, 'plantillas', 'logo.png')
+BASE_DIR  = os.path.dirname(os.path.abspath(__file__))
+PTPL_SOL  = os.path.join(BASE_DIR, 'plantillas', 'Solicitud_plantilla.xlsx')
+PTPL_REP  = os.path.join(BASE_DIR, 'plantillas', 'Reposicion_plantilla.xlsx')
+LOGO_PATH = os.path.join(BASE_DIR, 'plantillas', 'logo.png')
 
-GMAIL_USER    = os.environ.get('GMAIL_USER', '')
-GMAIL_PASS    = os.environ.get('GMAIL_PASS', '')
-GITHUB_TOKEN  = os.environ.get('GITHUB_TOKEN', '')
-GITHUB_OWNER  = os.environ.get('GITHUB_OWNER', 'DIRECCIONGESTIONDEFONDOS')
-GITHUB_REPO   = os.environ.get('GITHUB_REPO',  'VIATICOS-SINALOA')
-DATA_FILE     = 'data.json'
+GMAIL_USER   = os.environ.get('GMAIL_USER', '')
+GMAIL_PASS   = os.environ.get('GMAIL_PASS', '')
+GITHUB_TOKEN = os.environ.get('GITHUB_TOKEN', '')
+GITHUB_OWNER = os.environ.get('GITHUB_OWNER', 'DIRECCIONGESTIONDEFONDOS')
+GITHUB_REPO  = os.environ.get('GITHUB_REPO',  'VIATICOS-SINALOA')
+DATA_FILE    = 'data.json'
+
+ADMIN_EMAILS = ['abraham.navarro@sinaloa.gob.mx', 'direcciongestiondefondos@gmail.com']
+DEFAULT_ADMIN_PASS = 'DGFADMIN'
+
+# ── SESIONES EN MEMORIA ───────────────────────────────────────────────────────
+sessions = {}  # token -> {email, role, expires}
+
+def hash_pass(p):
+    return hashlib.sha256(p.encode()).hexdigest()
+
+def create_session(email, role):
+    token = secrets.token_hex(32)
+    sessions[token] = {
+        'email': email, 'role': role,
+        'expires': (datetime.now() + timedelta(hours=8)).isoformat()
+    }
+    return token
+
+def get_session(token):
+    if not token or token not in sessions:
+        return None
+    s = sessions[token]
+    if datetime.now() > datetime.fromisoformat(s['expires']):
+        del sessions[token]
+        return None
+    return s
+
+def clean_sessions():
+    now = datetime.now()
+    expired = [t for t, s in sessions.items() if now > datetime.fromisoformat(s['expires'])]
+    for t in expired:
+        del sessions[t]
 
 # ── DÍAS HÁBILES ──────────────────────────────────────────────────────────────
-FESTIVOS_MX = {
-    (1,1),(2,5),(3,21),(9,16),(11,2),(11,20),(12,25)
-}
+FESTIVOS = {(1,1),(2,5),(3,21),(9,16),(11,2),(11,20),(12,25)}
+
 def es_habil(d):
     if d.weekday() >= 5: return False
-    if (d.month, d.day) in FESTIVOS_MX: return False
-    return True
+    return (d.month, d.day) not in FESTIVOS
 
-def restar_dias_habiles(fecha, n):
+def restar_habiles(fecha, n):
     d = fecha
     while n > 0:
         d -= timedelta(days=1)
-        if es_habil(d):
-            n -= 1
+        if es_habil(d): n -= 1
     return d
 
 # ── NÚMERO A LETRAS ───────────────────────────────────────────────────────────
@@ -90,7 +120,6 @@ def gh_headers():
     }
 
 def gh_get_data():
-    """Lee data.json del repo. Si no existe, retorna estructura vacía."""
     url = f'https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/contents/{DATA_FILE}'
     req = urllib.request.Request(url, headers=gh_headers())
     try:
@@ -102,11 +131,31 @@ def gh_get_data():
             return data
     except urllib.error.HTTPError as e:
         if e.code == 404:
-            return {'perfiles':[], 'programas':[], 'folios':{}, '_sha': None}
+            # Init with default admin users
+            return {
+                'perfiles': [],
+                'programas': [],
+                'folios': {},
+                'historial': [],
+                'usuarios': [
+                    {
+                        'email': 'abraham.navarro@sinaloa.gob.mx',
+                        'pass_hash': hash_pass(DEFAULT_ADMIN_PASS),
+                        'role': 'admin',
+                        'nombre': 'Abraham Navarro'
+                    },
+                    {
+                        'email': 'direcciongestiondefondos@gmail.com',
+                        'pass_hash': hash_pass(DEFAULT_ADMIN_PASS),
+                        'role': 'admin',
+                        'nombre': 'Dirección Gestión de Fondos'
+                    }
+                ],
+                '_sha': None
+            }
         raise
 
 def gh_save_data(data):
-    """Guarda data.json en el repo."""
     sha = data.pop('_sha', None)
     content = base64.b64encode(json.dumps(data, ensure_ascii=False, indent=2).encode()).decode()
     payload = {'message': 'update data', 'content': content}
@@ -118,7 +167,6 @@ def gh_save_data(data):
         return json.loads(r.read())
 
 def siguiente_folio():
-    """Genera el siguiente folio SE-SSGFF-NNNN/AAAA."""
     year = str(datetime.now().year)
     data = gh_get_data()
     folios = data.get('folios', {})
@@ -128,19 +176,18 @@ def siguiente_folio():
     gh_save_data(data)
     return f'SE-SSGFF-{n:04d}/{year}', n
 
-# ── AGREGAR LOGO AL EXCEL ──────────────────────────────────────────────────────
+# ── LOGO EN EXCEL ──────────────────────────────────────────────────────────────
 def agregar_logo(ws):
     if not os.path.exists(LOGO_PATH): return
     try:
         img = XLImage(LOGO_PATH)
-        img.width  = 380
-        img.height = 85
+        img.width = 320; img.height = 72
         img.anchor = 'B1'
         ws.add_image(img)
     except Exception as e:
         print(f"Logo error: {e}")
 
-# ── GENERAR SOLICITUD ─────────────────────────────────────────────────────────
+# ── GENERAR EXCEL ──────────────────────────────────────────────────────────────
 def generar_solicitud(d):
     wb  = load_workbook(PTPL_SOL)
     ws  = wb['MAZATLAN']
@@ -176,7 +223,6 @@ def generar_solicitud(d):
     buf = io.BytesIO(); wb.save(buf); buf.seek(0)
     return buf.read()
 
-# ── GENERAR REPOSICIÓN ────────────────────────────────────────────────────────
 def generar_reposicion(d):
     wb  = load_workbook(PTPL_REP)
     ws  = wb['reposición']
@@ -209,7 +255,38 @@ def generar_reposicion(d):
     buf = io.BytesIO(); wb.save(buf); buf.seek(0)
     return buf.read()
 
-# ── CORREO HTML ───────────────────────────────────────────────────────────────
+# ── HISTORIAL EXCEL ───────────────────────────────────────────────────────────
+def generar_historial_excel(historial):
+    from openpyxl import Workbook
+    wb = Workbook()
+    ws = wb.active
+    ws.title = 'Historial de Solicitudes'
+    headers = ['Folio','Fecha Exp.','Nombre','RFC','Cargo','Destino','Fecha Ini','Fecha Fin','Programa','Total','Tipo','Correo Enviado']
+    for i, h in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=i, value=h)
+        cell.font = Font(bold=True, color='FFFFFF')
+        cell.fill = PatternFill('solid', fgColor='0F2543')
+        cell.alignment = Alignment(horizontal='center')
+    for row_i, r in enumerate(historial, 2):
+        ws.cell(row=row_i, column=1,  value=r.get('folio',''))
+        ws.cell(row=row_i, column=2,  value=r.get('fecha_exp',''))
+        ws.cell(row=row_i, column=3,  value=r.get('nombre',''))
+        ws.cell(row=row_i, column=4,  value=r.get('rfc',''))
+        ws.cell(row=row_i, column=5,  value=r.get('cargo',''))
+        ws.cell(row=row_i, column=6,  value=r.get('destino',''))
+        ws.cell(row=row_i, column=7,  value=r.get('fecha_ini',''))
+        ws.cell(row=row_i, column=8,  value=r.get('fecha_fin',''))
+        ws.cell(row=row_i, column=9,  value=r.get('programa',''))
+        ws.cell(row=row_i, column=10, value=float(r.get('total',0)))
+        ws.cell(row=row_i, column=11, value=r.get('tipo',''))
+        ws.cell(row=row_i, column=12, value='Sí' if r.get('email_ok') else 'No')
+    for col in ws.columns:
+        max_len = max((len(str(c.value or '')) for c in col), default=10)
+        ws.column_dimensions[get_column_letter(col[0].column)].width = min(max_len + 4, 40)
+    buf = io.BytesIO(); wb.save(buf); buf.seek(0)
+    return buf.read()
+
+# ── CORREO ────────────────────────────────────────────────────────────────────
 def html_correo(d, total, tipo_doc):
     def fmt(n): return f"${float(n):,.2f}" if n else None
     filas = [
@@ -255,16 +332,13 @@ def html_correo(d, total, tipo_doc):
         <td style="padding:12px;color:#c8a84b;font-weight:700;font-size:18px;text-align:right;">${total:,.2f}</td>
       </tr>
     </table>
-    <p style="color:#aaa;font-size:11px;margin:24px 0 0;line-height:1.6;">
-      Correo generado automáticamente por el Sistema de Viáticos · Secretaría de Economía Sinaloa
-    </p>
+    <p style="color:#aaa;font-size:11px;margin:24px 0 0;line-height:1.6;">Correo generado automáticamente · Sistema de Viáticos · Secretaría de Economía Sinaloa</p>
   </td></tr>
   <tr><td style="background:#f9f9f9;padding:14px 36px;border-top:1px solid #eee;text-align:center;">
     <div style="font-size:11px;color:#aaa;">Secretaría de Economía · Gobierno del Estado de Sinaloa · {datetime.now().year}</div>
   </td></tr>
 </table></td></tr></table></body></html>"""
 
-# ── ENVIAR CORREO ─────────────────────────────────────────────────────────────
 def enviar_correo(dest, asunto, html, xlsx_bytes, filename):
     msg = MIMEMultipart('mixed')
     msg['From']    = f"Viáticos SE Sinaloa <{GMAIL_USER}>"
@@ -285,112 +359,343 @@ def enviar_correo(dest, asunto, html, xlsx_bytes, filename):
 # ── HTTP HANDLER ──────────────────────────────────────────────────────────────
 HTML_PATH = os.path.join(BASE_DIR, 'index.html')
 
+def serve_static(path):
+    files = {
+        '/manifest.json': ('application/json', os.path.join(BASE_DIR, 'manifest.json')),
+        '/sw.js': ('application/javascript', os.path.join(BASE_DIR, 'sw.js')),
+        '/icon-192.png': ('image/png', os.path.join(BASE_DIR, 'icon-192.png')),
+        '/icon-512.png': ('image/png', os.path.join(BASE_DIR, 'icon-512.png')),
+        '/logo.png': ('image/png', os.path.join(BASE_DIR, 'logo.png')),
+    }
+    return files.get(path)
+
+def get_token_from_req(handler):
+    cookie = handler.headers.get('Cookie', '')
+    for part in cookie.split(';'):
+        part = part.strip()
+        if part.startswith('session='):
+            return part[8:]
+    return None
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args): pass
 
     def cors(self):
-        self.send_header('Access-Control-Allow-Origin','*')
-        self.send_header('Access-Control-Allow-Methods','POST,GET,OPTIONS')
-        self.send_header('Access-Control-Allow-Headers','Content-Type')
-
-    def do_OPTIONS(self):
-        self.send_response(200); self.cors(); self.end_headers()
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'POST,GET,OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type,Authorization')
 
     def send_json(self, obj, code=200):
         body = json.dumps(obj, ensure_ascii=False).encode()
         self.send_response(code)
-        self.send_header('Content-Type','application/json; charset=utf-8')
+        self.send_header('Content-Type', 'application/json; charset=utf-8')
         self.send_header('Content-Length', len(body))
         self.cors(); self.end_headers(); self.wfile.write(body)
 
     def read_body(self):
-        n = int(self.headers.get('Content-Length',0))
+        n = int(self.headers.get('Content-Length', 0))
         return json.loads(self.rfile.read(n)) if n else {}
+
+    def get_auth(self):
+        # Try Authorization header first
+        auth = self.headers.get('Authorization', '')
+        if auth.startswith('Bearer '):
+            return get_session(auth[7:])
+        # Try cookie
+        return get_session(get_token_from_req(self))
+
+    def do_OPTIONS(self):
+        self.send_response(200); self.cors(); self.end_headers()
 
     def do_GET(self):
         path = urlparse(self.path).path
-        if path in ('/','/index.html'):
-            with open(HTML_PATH,'rb') as f: content = f.read()
+
+        # Static files
+        static = serve_static(path)
+        if static:
+            mime, fpath = static
+            if os.path.exists(fpath):
+                with open(fpath, 'rb') as f: content = f.read()
+                self.send_response(200)
+                self.send_header('Content-Type', mime)
+                self.send_header('Content-Length', len(content))
+                self.cors(); self.end_headers(); self.wfile.write(content)
+            else:
+                self.send_response(404); self.end_headers()
+            return
+
+        if path in ('/', '/index.html'):
+            with open(HTML_PATH, 'rb') as f: content = f.read()
             self.send_response(200)
-            self.send_header('Content-Type','text/html; charset=utf-8')
+            self.send_header('Content-Type', 'text/html; charset=utf-8')
             self.send_header('Content-Length', len(content))
             self.cors(); self.end_headers(); self.wfile.write(content)
+            return
 
-        elif path == '/api/data':
+        # API: get data (requires auth)
+        if path == '/api/data':
+            sess = self.get_auth()
+            if not sess:
+                self.send_json({'error': 'no_auth'}, 401); return
             try:
-                data = gh_get_data(); data.pop('_sha',None)
-                self.send_json(data)
+                data = gh_get_data()
+                result = {
+                    'perfiles': data.get('perfiles', []),
+                    'programas': data.get('programas', []),
+                    'role': sess['role'],
+                    'email': sess['email'],
+                }
+                if sess['role'] == 'admin':
+                    result['usuarios'] = data.get('usuarios', [])
+                    result['historial'] = data.get('historial', [])
+                self.send_json(result)
             except Exception as e:
                 self.send_json({'error': str(e)}, 500)
+            return
 
-        else:
-            self.send_response(404); self.end_headers()
+        # API: delete historial entry (admin only)
+        if path == '/api/historial/delete':
+            sess = self.get_auth()
+            if not sess or sess['role'] != 'admin':
+                self.send_json({'error': 'forbidden'}, 403); return
+            folio = self.read_body().get('folio','')
+            if not folio:
+                self.send_json({'ok': False, 'error': 'folio requerido'}); return
+            try:
+                data = gh_get_data()
+                sha  = data.get('_sha')
+                antes = len(data.get('historial', []))
+                data['historial'] = [r for r in data.get('historial', []) if r.get('folio') != folio]
+                despues = len(data['historial'])
+                data['_sha'] = sha
+                gh_save_data(data)
+                self.send_json({'ok': True, 'eliminados': antes - despues})
+            except Exception as e:
+                self.send_json({'ok': False, 'error': str(e)}, 500)
+            return
+
+        # API: delete ALL historial (admin only)
+        if path == '/api/historial/clear':
+            sess = self.get_auth()
+            if not sess or sess['role'] != 'admin':
+                self.send_json({'error': 'forbidden'}, 403); return
+            try:
+                data = gh_get_data()
+                sha  = data.get('_sha')
+                data['historial'] = []
+                data['folios'] = {}
+                data['_sha'] = sha
+                gh_save_data(data)
+                self.send_json({'ok': True})
+            except Exception as e:
+                self.send_json({'ok': False, 'error': str(e)}, 500)
+            return
+
+        # API: download historial (admin only)
+        if path == '/api/historial':
+            sess = self.get_auth()
+            if not sess or sess['role'] != 'admin':
+                self.send_json({'error': 'forbidden'}, 403); return
+            try:
+                data = gh_get_data()
+                xlsx = generar_historial_excel(data.get('historial', []))
+                fecha = datetime.now().strftime('%Y%m%d')
+                fname = f'Historial_Viaticos_{fecha}.xlsx'
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                self.send_header('Content-Disposition', f'attachment; filename="{fname}"')
+                self.send_header('Content-Length', len(xlsx))
+                self.cors(); self.end_headers(); self.wfile.write(xlsx)
+            except Exception as e:
+                self.send_json({'error': str(e)}, 500)
+            return
+
+        self.send_response(404); self.end_headers()
 
     def do_POST(self):
         path = urlparse(self.path).path
         d    = self.read_body()
 
-        # ── Guardar datos ──────────────────────────────────────────────────────
-        if path == '/api/save':
+        # ── LOGIN ──────────────────────────────────────────────────────────────
+        if path == '/api/login':
+            email = d.get('email','').lower().strip()
+            pwd   = d.get('password','')
             try:
-                current = gh_get_data()
-                sha = current.get('_sha')
-                for key in ('perfiles','programas','folios'):
-                    if key in d: current[key] = d[key]
-                current['_sha'] = sha
-                gh_save_data(current)
+                data     = gh_get_data()
+                usuarios = data.get('usuarios', [])
+                usuario  = next((u for u in usuarios if u['email'].lower() == email), None)
+                if not usuario:
+                    self.send_json({'ok': False, 'error': 'Correo no registrado. Contacta al administrador.'}); return
+                if not usuario.get('pass_hash'):
+                    self.send_json({'ok': False, 'first_time': True, 'error': 'first_time'}); return
+                if usuario.get('pass_hash') != hash_pass(pwd):
+                    self.send_json({'ok': False, 'error': 'Contrasena incorrecta'}); return
+                role  = usuario.get('role', 'user')
+                token = create_session(email, role)
+                self.send_json({'ok': True, 'token': token, 'role': role, 'nombre': usuario.get('nombre','')})
+            except Exception as e:
+                self.send_json({'ok': False, 'error': str(e)}, 500)
+            return
+
+        # ── PRIMERA VEZ: CREAR CONTRASENA ─────────────────────────────────────
+        if path == '/api/set-password':
+            email = d.get('email','').lower().strip()
+            pwd   = d.get('password','')
+            if len(pwd) < 6:
+                self.send_json({'ok': False, 'error': 'Minimo 6 caracteres'}); return
+            try:
+                data     = gh_get_data()
+                sha      = data.get('_sha')
+                usuarios = data.get('usuarios', [])
+                usuario  = next((u for u in usuarios if u['email'].lower() == email), None)
+                if not usuario:
+                    self.send_json({'ok': False, 'error': 'Usuario no encontrado'}); return
+                if usuario.get('pass_hash'):
+                    self.send_json({'ok': False, 'error': 'Este usuario ya tiene contrasena'}); return
+                usuario['pass_hash'] = hash_pass(pwd)
+                data['_sha'] = sha
+                gh_save_data(data)
+                role  = usuario.get('role', 'user')
+                token = create_session(email, role)
+                self.send_json({'ok': True, 'token': token, 'role': role, 'nombre': usuario.get('nombre','')})
+            except Exception as e:
+                self.send_json({'ok': False, 'error': str(e)}, 500)
+            return
+
+        # ── CAMBIAR CONTRASEÑA ─────────────────────────────────────────────────
+        if path == '/api/cambiar-pass':
+            sess = self.get_auth()
+            if not sess:
+                self.send_json({'ok': False, 'error': 'no_auth'}, 401); return
+            old_pwd = d.get('old_password','')
+            new_pwd = d.get('new_password','')
+            try:
+                data = gh_get_data()
+                sha  = data.get('_sha')
+                usuarios = data.get('usuarios', [])
+                usuario  = next((u for u in usuarios if u['email'].lower() == sess['email']), None)
+                if not usuario or usuario.get('pass_hash') != hash_pass(old_pwd):
+                    self.send_json({'ok': False, 'error': 'Contraseña actual incorrecta'}); return
+                usuario['pass_hash'] = hash_pass(new_pwd)
+                data['_sha'] = sha
+                gh_save_data(data)
                 self.send_json({'ok': True})
             except Exception as e:
                 self.send_json({'ok': False, 'error': str(e)}, 500)
+            return
 
-        # ── Generar documento ──────────────────────────────────────────────────
-        elif path in ('/generar/solicitud', '/generar/reposicion'):
+        # ── ADMIN: GESTIÓN DE USUARIOS ─────────────────────────────────────────
+        if path == '/api/usuarios/save':
+            sess = self.get_auth()
+            if not sess or sess['role'] != 'admin':
+                self.send_json({'ok': False, 'error': 'forbidden'}, 403); return
             try:
-                es_rep   = path == '/generar/reposicion'
+                data = gh_get_data()
+                sha  = data.get('_sha')
+                data['usuarios'] = d.get('usuarios', data.get('usuarios', []))
+                data['_sha'] = sha
+                gh_save_data(data)
+                self.send_json({'ok': True})
+            except Exception as e:
+                self.send_json({'ok': False, 'error': str(e)}, 500)
+            return
+
+        # Todas las demás rutas requieren auth
+        sess = self.get_auth()
+        if not sess:
+            self.send_json({'error': 'no_auth'}, 401); return
+
+        # ── GUARDAR DATOS ──────────────────────────────────────────────────────
+        if path == '/api/save':
+            try:
+                data = gh_get_data()
+                sha  = data.get('_sha')
+                # Usuarios: solo admin puede modificar
+                if sess['role'] == 'admin':
+                    for key in ('perfiles','programas','folios'):
+                        if key in d: data[key] = d[key]
+                else:
+                    # Usuario normal: puede agregar perfiles y programas pero NO editar
+                    if 'perfiles_add' in d:
+                        data.setdefault('perfiles', []).append(d['perfiles_add'])
+                    if 'programas' in d:
+                        data['programas'] = d['programas']
+                data['_sha'] = sha
+                gh_save_data(data)
+                self.send_json({'ok': True})
+            except Exception as e:
+                self.send_json({'ok': False, 'error': str(e)}, 500)
+            return
+
+        # ── GENERAR DOCUMENTO ──────────────────────────────────────────────────
+        if path in ('/generar/solicitud', '/generar/reposicion'):
+            try:
+                es_rep = path == '/generar/reposicion'
                 folio, _ = siguiente_folio()
                 d['folio'] = folio
 
-                # Calcular fecha expedición (3 días hábiles antes de fecha_ini)
                 if d.get('fecha_ini'):
                     try:
                         fi = datetime.strptime(d['fecha_ini'], '%d/%m/%Y')
-                        fe = restar_dias_habiles(fi, 3)
+                        fe = restar_habiles(fi, 3)
                         d['fecha_exp'] = fe.strftime('%d/%m/%Y')
                     except: pass
 
-                xlsx     = generar_reposicion(d) if es_rep else generar_solicitud(d)
-                tipo     = d.get('titulo','SOLICITUD DE OFICIO DE COMISIÓN')
-                total    = float(d.get('total', 0))
-                nom      = d.get('nombre','').replace(' ','_')[:18]
-                dest_str = d.get('destino','').replace(' ','_')[:12]
-                prefix   = 'Reposicion' if es_rep else 'Solicitud'
-                filename = f"{prefix}_{nom}_{dest_str}_{folio.replace('/','-')}.xlsx"
+                xlsx   = generar_reposicion(d) if es_rep else generar_solicitud(d)
+                tipo   = d.get('titulo','SOLICITUD DE OFICIO DE COMISIÓN')
+                total  = float(d.get('total', 0))
+                nom    = d.get('nombre','').replace(' ','_')[:18]
+                dst    = d.get('destino','').replace(' ','_')[:12]
+                prefix = 'Reposicion' if es_rep else 'Solicitud'
+                fname  = f"{prefix}_{nom}_{dst}_{folio.replace('/','-')}.xlsx"
 
-                # Enviar correo
+                # Correo
                 email_dest = d.get('email_destinatario','').strip()
                 email_ok = False; email_err = ''
                 if email_dest and GMAIL_USER and GMAIL_PASS:
                     try:
                         asunto = f"Viáticos — {tipo} | {d.get('destino','').title()} | {d.get('fecha_ini','')}"
-                        html   = html_correo(d, total, tipo)
-                        enviar_correo(email_dest, asunto, html, xlsx, filename)
+                        enviar_correo(email_dest, asunto, html_correo(d, total, tipo), xlsx, fname)
                         email_ok = True
                     except Exception as e:
                         email_err = str(e)
 
+                # Guardar en historial
+                try:
+                    data = gh_get_data()
+                    sha  = data.get('_sha')
+                    data.setdefault('historial', []).append({
+                        'folio': folio,
+                        'fecha_exp': d.get('fecha_exp',''),
+                        'nombre': d.get('nombre',''),
+                        'rfc': d.get('rfc',''),
+                        'cargo': d.get('cargo',''),
+                        'destino': d.get('destino',''),
+                        'fecha_ini': d.get('fecha_ini',''),
+                        'fecha_fin': d.get('fecha_fin',''),
+                        'programa': d.get('programa',''),
+                        'total': total,
+                        'tipo': 'Reposición' if es_rep else 'Oficio',
+                        'email_ok': email_ok,
+                        'generado_por': sess['email'],
+                        'timestamp': datetime.now().isoformat()
+                    })
+                    data['_sha'] = sha
+                    gh_save_data(data)
+                except Exception as e:
+                    print(f"Error guardando historial: {e}")
+
                 self.send_json({
-                    'filename':  filename,
-                    'folio':     folio,
+                    'filename': fname, 'folio': folio,
                     'fecha_exp': d.get('fecha_exp',''),
-                    'email_ok':  email_ok,
-                    'email_err': email_err,
-                    'xlsx_b64':  base64.b64encode(xlsx).decode()
+                    'email_ok': email_ok, 'email_err': email_err,
+                    'xlsx_b64': base64.b64encode(xlsx).decode()
                 })
             except Exception as e:
                 self.send_json({'error': str(e)}, 500)
+            return
 
-        else:
-            self.send_response(404); self.end_headers()
+        self.send_response(404); self.end_headers()
 
 
 if __name__ == '__main__':

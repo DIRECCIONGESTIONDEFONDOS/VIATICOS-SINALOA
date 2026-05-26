@@ -2,26 +2,63 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sistema de Viáticos 2025 · SE Sinaloa</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f2543">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Viáticos">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<title>Viáticos SE Sinaloa</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{--navy:#0f2543;--blue:#1a4a8a;--accent:#c8a84b;--light:#f4f6fa;--white:#fff;--border:#dde2ec;--text:#1a2640;--muted:#7a8499;--danger:#c0392b;--green:#1a7a5e;}
-body{font-family:'DM Sans',sans-serif;background:var(--light);color:var(--text);}
-.tab-bar{background:var(--navy);display:flex;padding:0 20px;overflow-x:auto;}
-.tab{padding:13px 18px;font-size:12px;font-weight:600;letter-spacing:.04em;color:rgba(255,255,255,.45);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:all .2s;}
+body{font-family:'DM Sans',sans-serif;background:var(--light);color:var(--text);min-height:100vh;}
+
+/* LOGIN */
+.login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--navy);padding:20px;}
+.login-card{background:var(--white);border-radius:20px;padding:36px 32px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.login-logo{text-align:center;margin-bottom:28px;}
+.login-logo-title{font-family:'Playfair Display',serif;font-size:24px;color:var(--navy);margin-top:8px;}
+.login-logo-sub{font-size:12px;color:var(--muted);margin-top:4px;}
+.login-form{display:flex;flex-direction:column;gap:14px;}
+.login-group{display:flex;flex-direction:column;gap:5px;}
+.login-group label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
+.login-group input{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text);background:var(--light);border:1.5px solid var(--border);border-radius:8px;padding:11px 14px;outline:none;width:100%;}
+.login-group input:focus{border-color:var(--blue);background:var(--white);}
+.btn-login{background:var(--navy);color:white;border:none;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;padding:13px;border-radius:10px;cursor:pointer;width:100%;margin-top:4px;transition:background .2s;}
+.btn-login:hover{background:var(--blue);}
+.login-error{background:#fdf0ef;border:1px solid #f5c6c2;color:var(--danger);border-radius:8px;padding:10px 14px;font-size:13px;text-align:center;display:none;}
+.login-install{background:rgba(200,168,75,.1);border:1px solid rgba(200,168,75,.3);border-radius:10px;padding:12px 14px;margin-top:16px;text-align:center;display:none;}
+.login-install p{font-size:12px;color:var(--navy);margin-bottom:8px;}
+.btn-install{background:var(--accent);color:var(--navy);border:none;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;padding:8px 16px;border-radius:6px;cursor:pointer;}
+
+/* APP */
+.app-screen{display:none;}
+.tab-bar{background:var(--navy);display:flex;padding:0 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.tab-bar::-webkit-scrollbar{display:none;}
+.tab{padding:13px 16px;font-size:12px;font-weight:600;letter-spacing:.04em;color:rgba(255,255,255,.45);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:all .2s;}
 .tab.active{color:var(--accent);border-bottom-color:var(--accent);}
-.tab-header{background:var(--navy);padding:16px 20px 0;}
-.header-brand{color:var(--accent);font-family:'Playfair Display',serif;font-size:20px;}
-.header-sub{color:rgba(255,255,255,.45);font-size:11px;margin-top:2px;}
-.panel{display:none;padding:20px 16px 60px;max-width:980px;margin:0 auto;}
+.top-bar{background:var(--navy);padding:14px 20px 0;display:flex;align-items:center;justify-content:space-between;}
+.top-brand{color:var(--accent);font-family:'Playfair Display',serif;font-size:19px;}
+.top-user{display:flex;align-items:center;gap:8px;}
+.user-chip{background:rgba(255,255,255,.1);border-radius:20px;padding:4px 10px;font-size:11px;color:rgba(255,255,255,.7);}
+.admin-chip{background:rgba(200,168,75,.2);border-radius:20px;padding:4px 10px;font-size:11px;color:var(--accent);font-weight:700;}
+.btn-logout{background:none;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.5);font-family:'DM Sans',sans-serif;font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;}
+
+/* PANELS */
+.panel{display:none;padding:18px 16px 80px;max-width:980px;margin:0 auto;}
 .panel.active{display:block;}
-.card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;}
+
+/* CARDS */
+.card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:14px;}
 .card-title{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
 .card-title::before{content:'';width:14px;height:2px;background:var(--accent);display:inline-block;}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+
+/* FORM */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
 .form-group{display:flex;flex-direction:column;gap:4px;}
 .form-group.full{grid-column:1/-1;}
 label{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;}
@@ -31,13 +68,13 @@ select:focus,input:focus,textarea:focus{border-color:var(--blue);background:var(
 select:disabled{opacity:.4;cursor:not-allowed;}
 textarea{resize:vertical;min-height:56px;}
 input[type="date"]{cursor:pointer;}
-input[readonly]{background:#f8f9fb;color:var(--muted);cursor:not-allowed;}
+input[readonly]{background:#f8f9fb;color:var(--muted);}
 
 /* PERSONA */
 .persona-selector{display:flex;gap:8px;align-items:flex-end;}
 .btn-add{white-space:nowrap;background:var(--navy);color:white;border:none;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:9px 14px;border-radius:8px;cursor:pointer;flex-shrink:0;}
-.perfil-badge{display:flex;align-items:center;gap:12px;background:#f0f5ff;border:1px solid #c8d8f0;border-radius:10px;padding:11px 14px;margin-top:10px;}
-.perfil-avatar{width:38px;height:38px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--accent);flex-shrink:0;}
+.perfil-badge{display:flex;align-items:center;gap:10px;background:#f0f5ff;border:1px solid #c8d8f0;border-radius:10px;padding:10px 13px;margin-top:10px;}
+.perfil-avatar{width:36px;height:36px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;}
 .perfil-info{flex:1;min-width:0;}
 .perfil-name{font-size:13px;font-weight:700;}
 .perfil-detail{font-size:11px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -45,7 +82,7 @@ input[readonly]{background:#f8f9fb;color:var(--muted);cursor:not-allowed;}
 .btn-sm-act{background:none;border:1px solid var(--border);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;flex-shrink:0;}
 
 /* TOGGLES */
-.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--light);border-radius:8px;border:1.5px solid var(--border);cursor:pointer;margin-bottom:8px;transition:border-color .2s;}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 13px;background:var(--light);border-radius:8px;border:1.5px solid var(--border);cursor:pointer;margin-bottom:8px;}
 .toggle-row:last-child{margin-bottom:0;}
 .toggle-label{font-size:13px;font-weight:500;}
 .toggle-sub{font-size:11px;color:var(--muted);margin-top:1px;}
@@ -55,14 +92,14 @@ input[readonly]{background:#f8f9fb;color:var(--muted);cursor:not-allowed;}
 .toggle.on::after{transform:translateX(17px);}
 
 /* LAYOUT */
-.main-layout{display:grid;grid-template-columns:1fr 290px;gap:16px;align-items:start;}
+.main-layout{display:grid;grid-template-columns:1fr 280px;gap:14px;align-items:start;}
 .result-panel{background:var(--navy);border-radius:12px;padding:20px;color:var(--white);position:sticky;top:16px;}
 .result-empty{text-align:center;padding:24px 0;color:rgba(255,255,255,.3);font-size:13px;}
-.result-empty-icon{font-size:26px;margin-bottom:8px;}
+.result-empty-icon{font-size:24px;margin-bottom:8px;}
 .result-tag{display:inline-block;background:rgba(200,168,75,.15);color:var(--accent);font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:4px;margin-bottom:12px;}
-.result-title{font-family:'Playfair Display',serif;font-size:17px;color:var(--accent);margin-bottom:2px;}
-.result-meta{font-size:11px;color:rgba(255,255,255,.4);margin-bottom:16px;}
-.result-row{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.07);}
+.result-title{font-family:'Playfair Display',serif;font-size:16px;color:var(--accent);margin-bottom:2px;}
+.result-meta{font-size:11px;color:rgba(255,255,255,.4);margin-bottom:14px;}
+.result-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.07);}
 .result-row:last-child{border-bottom:none;}
 .result-row-label{font-size:12px;color:rgba(255,255,255,.7);}
 .result-row-detail{font-size:10px;color:rgba(255,255,255,.3);margin-top:1px;}
@@ -70,53 +107,52 @@ input[readonly]{background:#f8f9fb;color:var(--muted);cursor:not-allowed;}
 .result-divider{border:none;border-top:1px solid rgba(200,168,75,.3);margin:10px 0 8px;}
 .result-total{display:flex;justify-content:space-between;align-items:baseline;margin-top:2px;}
 .result-total-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);}
-.result-total-amount{font-family:'Playfair Display',serif;font-size:26px;color:var(--accent);}
-.btn-gen{width:100%;margin-top:12px;background:var(--accent);border:none;color:var(--navy);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;padding:11px;border-radius:8px;cursor:pointer;}
+.result-total-amount{font-family:'Playfair Display',serif;font-size:24px;color:var(--accent);}
+.btn-gen{width:100%;margin-top:10px;background:var(--accent);border:none;color:var(--navy);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;padding:10px;border-radius:8px;cursor:pointer;}
 .btn-gen:disabled{opacity:.35;cursor:not-allowed;}
 .btn-reset{width:100%;margin-top:6px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.45);font-family:'DM Sans',sans-serif;font-size:11px;padding:8px;border-radius:8px;cursor:pointer;}
 
 /* MODAL */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;padding:16px;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;align-items:center;justify-content:center;padding:16px;}
 .modal-overlay.open{display:flex;}
-.modal{background:var(--white);border-radius:16px;padding:24px;width:100%;max-width:520px;box-shadow:0 20px 60px rgba(0,0,0,.2);max-height:90vh;overflow-y:auto;}
-.modal-title{font-family:'Playfair Display',serif;font-size:19px;color:var(--navy);margin-bottom:3px;}
-.modal-sub{font-size:12px;color:var(--muted);margin-bottom:18px;}
-.modal-section{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:16px 0 10px;padding-bottom:4px;border-bottom:1px solid var(--border);}
-.modal-actions{display:flex;gap:8px;margin-top:18px;justify-content:flex-end;}
+.modal{background:var(--white);border-radius:16px;padding:22px;width:100%;max-width:520px;box-shadow:0 20px 60px rgba(0,0,0,.2);max-height:92vh;overflow-y:auto;}
+.modal-title{font-family:'Playfair Display',serif;font-size:18px;color:var(--navy);margin-bottom:3px;}
+.modal-sub{font-size:12px;color:var(--muted);margin-bottom:16px;}
+.modal-section{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:14px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border);}
+.modal-actions{display:flex;gap:8px;margin-top:16px;justify-content:flex-end;}
 .btn-primary{background:var(--navy);color:white;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:10px 22px;border-radius:8px;cursor:pointer;}
 .btn-secondary{background:var(--white);color:var(--text);border:1.5px solid var(--border);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:10px 18px;border-radius:8px;cursor:pointer;}
-.btn-danger{background:#fdf0ef;color:var(--danger);border:1.5px solid #f5c6c2;font-family:'DM Sans',sans-serif;font-size:11px;padding:7px 12px;border-radius:8px;cursor:pointer;margin-right:auto;}
+.btn-danger{background:#fdf0ef;color:var(--danger);border:1.5px solid #f5c6c2;font-family:'DM Sans',sans-serif;font-size:12px;padding:7px 12px;border-radius:8px;cursor:pointer;margin-right:auto;}
 
 /* PERFILES GRID */
-.perfiles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;}
+.perfiles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;}
 .perfil-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:16px;}
 .perfil-card-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-.perfil-card-avatar{width:42px;height:42px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--accent);flex-shrink:0;}
+.perfil-card-avatar{width:40px;height:40px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--accent);flex-shrink:0;}
 .perfil-card-name{font-size:13px;font-weight:700;line-height:1.2;}
 .perfil-card-rango{font-size:11px;color:var(--muted);margin-top:2px;}
 .perfil-card-details{font-size:11px;color:var(--muted);display:flex;flex-direction:column;gap:3px;margin-bottom:10px;}
 .perfil-card-actions{display:flex;gap:6px;}
-.btn-sm{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;padding:5px 10px;border-radius:6px;cursor:pointer;}
-.btn-sm-edit{background:var(--light);border:1px solid var(--border);color:var(--text);}
-.btn-sm-del{background:#fdf0ef;border:1px solid #f5c6c2;color:var(--danger);}
+.btn-sm{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;padding:5px 10px;border-radius:6px;cursor:pointer;border:1px solid var(--border);}
+.btn-sm-edit{background:var(--light);color:var(--text);}
+.btn-sm-del{background:#fdf0ef;border-color:#f5c6c2;color:var(--danger);}
 .empty-state{text-align:center;padding:40px 20px;color:var(--muted);grid-column:1/-1;}
 .empty-state .icon{font-size:36px;margin-bottom:10px;}
 
-/* PROGRAMAS TAB */
-.programa-item{display:flex;align-items:start;gap:10px;padding:12px 16px;background:var(--white);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;}
+/* PROGRAMAS */
+.programa-item{display:flex;align-items:start;gap:10px;padding:12px 14px;background:var(--white);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;}
 .programa-item-info{flex:1;}
 .programa-item-name{font-size:13px;font-weight:700;}
-.programa-item-motivos{font-size:11px;color:var(--muted);margin-top:4px;}
-.motivo-tag{display:inline-block;background:var(--light);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px;margin:2px;}
+.motivo-tag{display:inline-block;background:var(--light);border:1px solid var(--border);border-radius:4px;padding:2px 7px;font-size:11px;margin:2px;}
 
-/* DOC TAB */
+/* DOC */
 .doc-type-selector{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
 .doc-type-btn{padding:14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;text-align:center;transition:all .2s;background:var(--white);}
 .doc-type-btn.selected{border-color:var(--navy);background:#f0f5ff;}
 .doc-icon{font-size:22px;margin-bottom:5px;}
 .doc-name{font-size:12px;font-weight:700;}
 .doc-desc{font-size:11px;color:var(--muted);margin-top:2px;}
-.summary-box{background:#f0f5ff;border:1px solid #c8d8f0;border-radius:8px;padding:13px 15px;margin-bottom:14px;}
+.summary-box{background:#f0f5ff;border:1px solid #c8d8f0;border-radius:8px;padding:12px 14px;margin-bottom:12px;}
 .s-row{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;}
 .s-row span:first-child{color:var(--muted);}
 .s-row span:last-child{font-weight:600;}
@@ -125,7 +161,7 @@ input[readonly]{background:#f8f9fb;color:var(--muted);cursor:not-allowed;}
 .btn-excel:disabled{opacity:.4;cursor:not-allowed;}
 .spinner{display:none;width:15px;height:15px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
-.status-card{border-radius:10px;padding:13px 15px;margin-top:10px;display:none;}
+.status-card{border-radius:10px;padding:12px 14px;margin-top:10px;display:none;}
 .status-ok{background:#d4edda;border:1px solid #c3e6cb;}
 .status-err{background:#f8d7da;border:1px solid #f5c6c2;}
 .status-title{font-size:13px;font-weight:700;margin-bottom:3px;}
@@ -135,21 +171,78 @@ input[readonly]{background:#f8f9fb;color:var(--muted);cursor:not-allowed;}
 .status-ok .status-detail{color:#1e6b38;}
 .status-err .status-detail{color:#721c24;}
 
+/* ADMIN PANEL */
+.admin-section{margin-bottom:20px;}
+.admin-section-title{font-family:'Playfair Display',serif;font-size:17px;color:var(--navy);margin-bottom:12px;display:flex;align-items:center;gap:10px;}
+.usuario-row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--white);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;}
+.usuario-info{display:flex;flex-direction:column;gap:2px;}
+.usuario-email{font-size:13px;font-weight:600;}
+.usuario-role{font-size:11px;}
+.role-admin{color:var(--accent);font-weight:700;}
+.role-user{color:var(--muted);}
+.usuario-actions{display:flex;gap:6px;}
+.btn-role{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;padding:5px 10px;border-radius:6px;cursor:pointer;border:1px solid var(--border);background:var(--light);color:var(--text);}
+.btn-historial{background:linear-gradient(135deg,#1a4a8a,#2460b8);color:white;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;padding:12px 20px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:8px;}
+
+/* CAMBIAR CONTRASEÑA */
+.pass-form{display:flex;flex-direction:column;gap:10px;max-width:360px;}
+
 /* LOADING */
 .loading-overlay{display:none;position:fixed;inset:0;background:rgba(15,37,67,.7);z-index:2000;align-items:center;justify-content:center;flex-direction:column;gap:16px;}
 .loading-overlay.show{display:flex;}
-.loading-spinner{width:48px;height:48px;border:4px solid rgba(200,168,75,.3);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
-.loading-text{color:var(--accent);font-size:14px;font-weight:600;}
+.loading-spinner{width:44px;height:44px;border:4px solid rgba(200,168,75,.3);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
+.loading-text{color:var(--accent);font-size:13px;font-weight:600;}
 
-/* FOLIO BADGE */
-.folio-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(200,168,75,.15);border:1px solid rgba(200,168,75,.3);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:700;color:var(--accent);margin-top:8px;}
+/* ROLE BADGE */
+.role-badge-admin{display:inline-block;background:rgba(200,168,75,.15);color:var(--accent);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:4px;}
+.role-badge-user{display:inline-block;background:rgba(122,132,153,.1);color:var(--muted);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:4px;}
 
-@media(max-width:720px){
+@media(max-width:700px){
   .main-layout,.doc-type-selector{grid-template-columns:1fr;}
-  .form-grid,.form-grid-3{grid-template-columns:1fr;}
+  .form-grid{grid-template-columns:1fr;}
   .result-panel{position:static;}
   .perfiles-grid{grid-template-columns:1fr;}
+  .stats-grid{grid-template-columns:1fr!important;}
+  .charts-grid{grid-template-columns:1fr!important;}
 }
+
+/* DASHBOARD */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px;margin-bottom:20px;}
+.stat-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center;}
+.stat-number{font-family:'Playfair Display',serif;font-size:32px;color:var(--navy);line-height:1;}
+.stat-label{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-top:6px;}
+.stat-sub{font-size:12px;color:var(--green);font-weight:600;margin-top:4px;}
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.chart-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:18px;}
+.chart-card.full{grid-column:1/-1;}
+.chart-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+.chart-wrap{position:relative;height:220px;}
+.ranking-list{display:flex;flex-direction:column;gap:8px;}
+.ranking-item{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--light);border-radius:8px;}
+.ranking-pos{width:24px;height:24px;border-radius:50%;background:var(--navy);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+.ranking-pos.gold{background:#c8a84b;color:var(--navy);}
+.ranking-pos.silver{background:#9ba8b5;color:white;}
+.ranking-pos.bronze{background:#cd7f32;color:white;}
+.ranking-info{flex:1;}
+.ranking-name{font-size:13px;font-weight:600;}
+.ranking-detail{font-size:11px;color:var(--muted);}
+.ranking-amount{font-size:13px;font-weight:700;color:var(--navy);}
+.historial-table{width:100%;border-collapse:collapse;font-size:12px;}
+.historial-table th{background:var(--navy);color:var(--accent);padding:8px 10px;text-align:left;font-weight:600;letter-spacing:.04em;font-size:11px;}
+.historial-table td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.historial-table tr:hover td{background:#f8f9fb;}
+.historial-table tr.prueba td{background:#fff8e8;}
+.btn-del-row{background:#fdf0ef;border:1px solid #f5c6c2;color:var(--danger);font-family:'DM Sans',sans-serif;font-size:11px;padding:4px 8px;border-radius:6px;cursor:pointer;white-space:nowrap;}
+.btn-del-row:hover{background:#fce4e1;}
+.badge-tipo{display:inline-block;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:700;}
+.badge-oficio{background:#e8f0fe;color:#1a4a8a;}
+.badge-repos{background:#fff3e0;color:#e65100;}
+.search-input{font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;outline:none;width:100%;margin-bottom:12px;}
+.search-input:focus{border-color:var(--blue);}
+.warn-banner{background:#fff8e8;border:1px solid #f0d080;border-radius:8px;padding:12px 14px;font-size:12px;color:#856404;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.dash-filter{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.filter-btn{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;padding:6px 14px;border-radius:20px;cursor:pointer;border:1.5px solid var(--border);background:var(--white);color:var(--text);transition:all .2s;}
+.filter-btn.active{background:var(--navy);color:white;border-color:var(--navy);}
 </style>
 </head>
 <body>
@@ -157,276 +250,472 @@ input[readonly]{background:#f8f9fb;color:var(--muted);cursor:not-allowed;}
 <!-- LOADING -->
 <div class="loading-overlay" id="loadingOverlay">
   <div class="loading-spinner"></div>
-  <div class="loading-text" id="loadingText">Cargando datos...</div>
+  <div class="loading-text" id="loadingText">Cargando...</div>
 </div>
 
-<div class="tab-header">
-  <div style="display:flex;align-items:center;justify-content:space-between;">
-    <div><div class="header-brand">Sistema de Viáticos</div>
-    <div class="header-sub">Secretaría de Economía · Sinaloa · 2025</div></div>
+<!-- ════════════════════ LOGIN ════════════════════ -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">
+      <img src="/logo.png" style="max-width:200px;max-height:50px;object-fit:contain;" onerror="this.style.display='none'"/>
+      <div class="login-logo-title">Sistema de Viáticos</div>
+      <div class="login-logo-sub">Secretaría de Economía · Sinaloa</div>
+    </div>
+    <div class="login-form">
+      <div class="login-group">
+        <label>Correo electrónico</label>
+        <input type="email" id="loginEmail" placeholder="tu@correo.com" autocomplete="email"/>
+      </div>
+      <div class="login-group">
+        <label>Contraseña</label>
+        <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"
+               onkeydown="if(event.key==='Enter')doLogin()"/>
+      </div>
+      <div class="login-error" id="loginError"></div>
+      <button class="btn-login" onclick="doLogin()">Entrar</button>
+    </div>
+    <div class="login-install" id="installBanner">
+      <p>📱 Instala esta app en tu dispositivo para acceso rápido</p>
+      <button class="btn-install" onclick="installPWA()">Instalar App</button>
+    </div>
+  </div>
+
+  <!-- PRIMERA VEZ -->
+  <div class="login-card" id="firstTimeCard" style="display:none;margin-top:16px;">
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:28px;margin-bottom:8px;">👋</div>
+      <div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--navy);">Bienvenido al sistema</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:4px;">Es tu primer acceso. Crea tu contraseña personal.</div>
+    </div>
+    <div class="login-form">
+      <div class="login-group">
+        <label>Nueva contraseña</label>
+        <input type="password" id="firstPass" placeholder="Mínimo 6 caracteres"/>
+      </div>
+      <div class="login-group">
+        <label>Confirmar contraseña</label>
+        <input type="password" id="firstPassConfirm" placeholder="Repite tu contraseña"
+               onkeydown="if(event.key==='Enter')doFirstTime()"/>
+      </div>
+      <div class="login-error" id="firstTimeError"></div>
+      <button class="btn-login" onclick="doFirstTime()">Crear contraseña y entrar</button>
+    </div>
   </div>
 </div>
-<div class="tab-bar">
-  <div class="tab active"  onclick="showTab('calc')">📐 Calculadora</div>
-  <div class="tab"         onclick="showTab('doc')">📄 Generar Documento</div>
-  <div class="tab"         onclick="showTab('perfiles')">👥 Perfiles</div>
-  <div class="tab"         onclick="showTab('programas')">📋 Programas</div>
-</div>
 
-<!-- ════════════════════════════ CALCULADORA ════════════════════════════ -->
-<div class="panel active" id="panel-calc">
-  <div class="main-layout">
-    <div>
+<!-- ════════════════════ APP ════════════════════ -->
+<div class="app-screen" id="appScreen">
+  <div class="top-bar">
+    <div class="top-brand">Viáticos SE</div>
+    <div class="top-user">
+      <span class="user-chip" id="topUserEmail"></span>
+      <span id="topRoleBadge"></span>
+      <button class="btn-logout" onclick="doLogout()">Salir</button>
+    </div>
+  </div>
+  <div class="tab-bar" id="tabBar">
+    <div class="tab active" onclick="showTab('calc')">📐 Calculadora</div>
+    <div class="tab" onclick="showTab('doc')">📄 Documento</div>
+    <div class="tab" onclick="showTab('perfiles')">👥 Perfiles</div>
+    <div class="tab" onclick="showTab('programas')">📋 Programas</div>
+    <div class="tab" id="tabAdmin" style="display:none" onclick="showTab('admin')">⚙️ Admin</div>
+    <div class="tab" id="tabStats" style="display:none" onclick="showTab('stats')">📊 Estadísticas</div>
+    <div class="tab" onclick="showTab('cuenta')">🔑 Cuenta</div>
+  </div>
 
-      <!-- COMISIONADO -->
-      <div class="card">
-        <div class="card-title">Comisionado</div>
-        <div class="persona-selector">
-          <div style="flex:1">
-            <label style="display:block;margin-bottom:4px;">Seleccionar persona registrada</label>
-            <select id="selectPersona" onchange="cargarPerfil()"><option value="">— Seleccionar —</option></select>
+  <!-- CALCULADORA -->
+  <div class="panel active" id="panel-calc">
+    <div class="main-layout">
+      <div>
+        <div class="card">
+          <div class="card-title">Comisionado</div>
+          <!-- Toggle para solicitar por otra persona -->
+          <div style="display:flex;gap:10px;margin-bottom:12px;">
+            <div class="toggle-row" style="flex:1;margin-bottom:0;" onclick="toggleParaOtro()">
+              <div><div class="toggle-label" style="font-size:12px;">🔄 Solicitar para otra persona</div>
+              <div class="toggle-sub">Activa si haces el trámite a nombre de alguien más</div></div>
+              <div class="toggle" id="toggle-para-otro"></div>
+            </div>
           </div>
-          <button class="btn-add" onclick="abrirModalPerfil(null)">+ Nuevo</button>
-        </div>
-        <div id="perfilBadge" style="display:none" class="perfil-badge">
-          <div class="perfil-avatar" id="badgeAvatar">?</div>
-          <div class="perfil-info">
-            <div class="perfil-name" id="badgeName">—</div>
-            <div class="perfil-detail" id="badgeDetail">—</div>
-            <div class="email-chip" id="badgeEmail" style="display:none">✉️ <span id="badgeEmailTxt"></span></div>
+          <!-- Selector para el solicitante (quien pide el favor) -->
+          <div id="solicitanteSection" style="display:none;margin-bottom:12px;padding:10px 13px;background:#fff8e8;border:1px solid #f0d080;border-radius:8px;">
+            <label style="display:block;margin-bottom:4px;color:#b8860b;">👤 Quien realiza el trámite</label>
+            <select id="selectSolicitante" style="background:white;">
+              <option value="">— Seleccionar solicitante —</option>
+            </select>
           </div>
-          <button class="btn-sm-act" onclick="editarActual()">✏ Editar</button>
+          <div class="persona-selector">
+            <div style="flex:1"><label style="display:block;margin-bottom:4px;" id="labelComisionado">Seleccionar persona</label>
+              <select id="selectPersona" onchange="cargarPerfil()"><option value="">— Seleccionar —</option></select></div>
+            <button class="btn-add" onclick="abrirModalPerfil(null)">+ Nuevo</button>
+          </div>
+          <div id="perfilBadge" style="display:none" class="perfil-badge">
+            <div class="perfil-avatar" id="badgeAvatar">?</div>
+            <div class="perfil-info">
+              <div class="perfil-name" id="badgeName">—</div>
+              <div class="perfil-detail" id="badgeDetail">—</div>
+              <div class="email-chip" id="badgeEmail" style="display:none">✉️ <span id="badgeEmailTxt"></span></div>
+            </div>
+            <button class="btn-sm-act" id="btnEditarActual" onclick="editarActual()" style="display:none">✏</button>
+          </div>
+          <div id="camposPersona" style="margin-top:12px;">
+            <div class="form-grid">
+              <div class="form-group"><label>Nombre completo</label>
+                <input type="text" id="nombre" placeholder="Ej. JUAN PÉREZ LÓPEZ" oninput="calcular()"/></div>
+              <div class="form-group"><label>RFC</label>
+                <input type="text" id="rfc" placeholder="Ej. PELJ801230AB1"/></div>
+              <div class="form-group"><label>Cargo</label>
+                <input type="text" id="cargo" placeholder="Ej. Director de Área"/></div>
+              <div class="form-group"><label>Rango</label>
+                <select id="rango" onchange="calcular()">
+                  <option value="">— Seleccionar —</option>
+                  <option value="secretario">Secretario / Subsecretario</option>
+                  <option value="director">Director</option>
+                  <option value="jefe">Jefe de Dpto. / Resto de Personal</option>
+                </select></div>
+            </div>
+          </div>
         </div>
-        <div id="camposPersona" style="margin-top:12px;">
+
+        <div class="card">
+          <div class="card-title">Destino y duración</div>
           <div class="form-grid">
-            <div class="form-group"><label>Nombre completo</label>
-              <input type="text" id="nombre" placeholder="Ej. JUAN PÉREZ LÓPEZ" oninput="calcular()"/></div>
-            <div class="form-group"><label>RFC</label>
-              <input type="text" id="rfc" placeholder="Ej. PELJ801230AB1"/></div>
-            <div class="form-group"><label>Cargo</label>
-              <input type="text" id="cargo" placeholder="Ej. Director de Gestión de Fondos"/></div>
-            <div class="form-group"><label>Rango / Puesto</label>
-              <select id="rango" onchange="calcular()">
+            <div class="form-group"><label>Tipo de viaje</label>
+              <select id="tipoViaje" onchange="onTipoChange()">
                 <option value="">— Seleccionar —</option>
-                <option value="secretario">Secretario / Subsecretario</option>
-                <option value="director">Director</option>
-                <option value="jefe">Jefe de Dpto. / Resto de Personal</option>
+                <option value="sinaloa">Dentro de Sinaloa</option>
+                <option value="especial">Los Mochis / Mazatlán</option>
+                <option value="nacional">Fuera del Estado</option>
               </select></div>
+            <div class="form-group"><label>Destino del tabulador</label>
+              <select id="destino" onchange="onDestinoChange()" disabled><option value="">— Primero elige el tipo —</option></select></div>
+            <div class="form-group full"><label>Destino (editable)</label>
+              <input type="text" id="destinoCustom" placeholder="Se prellena al seleccionar arriba" oninput="calcular()"/></div>
+            <div class="form-group"><label>Días completos</label>
+              <input type="number" id="dias" min="1" value="1" oninput="calcular();actualizarFechas()"/></div>
+            <div class="form-group"><label>Noches de hospedaje</label>
+              <input type="number" id="noches" min="0" value="0" oninput="calcular()"/></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Conceptos</div>
+          <div class="toggle-row" onclick="toggleC('alimentos')">
+            <div><div class="toggle-label">🍽 Alimentos</div><div class="toggle-sub">Tarifa diaria según destino y rango</div></div>
+            <div class="toggle on" id="toggle-alimentos"></div></div>
+          <div class="toggle-row" onclick="toggleC('hospedaje')">
+            <div><div class="toggle-label">🏨 Hospedaje</div><div class="toggle-sub">Tarifa por noche según rango</div></div>
+            <div class="toggle" id="toggle-hospedaje"></div></div>
+          <div class="toggle-row" onclick="toggleC('taxis')">
+            <div><div class="toggle-label">🚕 Taxis / Transporte local</div><div class="toggle-sub">$500 diarios</div></div>
+            <div class="toggle" id="toggle-taxis"></div></div>
+          <div class="toggle-row" onclick="toggleC('combustible')">
+            <div><div class="toggle-label">⛽ Combustible (vehículo oficial)</div><div class="toggle-sub">Tarifa por ruta ida y vuelta</div></div>
+            <div class="toggle" id="toggle-combustible"></div></div>
+          <div id="grupCil" style="display:none;margin-top:12px;"><div class="form-group" style="max-width:170px;"><label>Cilindros</label>
+            <select id="cilindros" onchange="calcular()">
+              <option value="4">4 cilindros</option><option value="6">6 cilindros</option><option value="8">8 cilindros</option>
+            </select></div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Datos de la comisión</div>
+          <div class="form-grid">
+            <div class="form-group"><label>Programa</label>
+              <select id="programaSelect" onchange="onProgramaSelect()"><option value="">— Seleccionar —</option></select></div>
+            <div class="form-group"><label>Motivo frecuente</label>
+              <select id="motivoSelect" onchange="onMotivoSelect()"><option value="">— Seleccionar —</option></select></div>
+            <div class="form-group full"><label>Motivo personalizado</label>
+              <textarea id="motivo" placeholder="O escribe un motivo específico..."></textarea></div>
+            <div class="form-group"><label>📅 Fecha inicial</label>
+              <input type="date" id="fechaIniPicker" onchange="actualizarFechas()"/></div>
+            <div class="form-group"><label>Fecha expedición (automática)</label>
+              <input type="text" id="fechaExp" readonly placeholder="3 días hábiles antes"/></div>
+            <div class="form-group"><label>Fecha final (automática)</label>
+              <input type="text" id="fechaFin" readonly placeholder="Según días"/></div>
           </div>
         </div>
       </div>
 
-      <!-- DESTINO -->
-      <div class="card">
-        <div class="card-title">Destino y duración</div>
-        <div class="form-grid">
-          <div class="form-group"><label>Tipo de viaje</label>
-            <select id="tipoViaje" onchange="onTipoChange()">
-              <option value="">— Seleccionar —</option>
-              <option value="sinaloa">Dentro de Sinaloa</option>
-              <option value="especial">Los Mochis / Mazatlán</option>
-              <option value="nacional">Fuera del Estado</option>
-            </select></div>
-          <div class="form-group"><label>Destino del tabulador</label>
-            <select id="destino" onchange="onDestinoChange()" disabled><option value="">— Primero elige el tipo —</option></select></div>
-          <div class="form-group full"><label>Destino (editable / agrega más si aplica)</label>
-            <input type="text" id="destinoCustom" placeholder="Se prellena al seleccionar arriba" oninput="calcular()"/></div>
-          <div class="form-group"><label>Días completos</label>
-            <input type="number" id="dias" min="1" value="1" oninput="calcular(); actualizarFechas()"/></div>
-          <div class="form-group"><label>Noches de hospedaje</label>
-            <input type="number" id="noches" min="0" value="0" oninput="calcular()"/></div>
-        </div>
-      </div>
-
-      <!-- CONCEPTOS -->
-      <div class="card">
-        <div class="card-title">Conceptos</div>
-        <div class="toggle-row" onclick="toggleC('alimentos')">
-          <div><div class="toggle-label">🍽 Alimentos</div><div class="toggle-sub">Tarifa diaria según destino y rango</div></div>
-          <div class="toggle on" id="toggle-alimentos"></div></div>
-        <div class="toggle-row" onclick="toggleC('hospedaje')">
-          <div><div class="toggle-label">🏨 Hospedaje</div><div class="toggle-sub">Tarifa por noche según rango</div></div>
-          <div class="toggle" id="toggle-hospedaje"></div></div>
-        <div class="toggle-row" onclick="toggleC('taxis')">
-          <div><div class="toggle-label">🚕 Taxis / Transporte local</div><div class="toggle-sub">$500 diarios</div></div>
-          <div class="toggle" id="toggle-taxis"></div></div>
-        <div class="toggle-row" onclick="toggleC('combustible')">
-          <div><div class="toggle-label">⛽ Combustible (vehículo oficial)</div><div class="toggle-sub">Tarifa por ruta ida y vuelta</div></div>
-          <div class="toggle" id="toggle-combustible"></div></div>
-        <div id="grupCil" style="display:none;margin-top:12px;"><div class="form-group" style="max-width:170px;"><label>Cilindros del vehículo</label>
-          <select id="cilindros" onchange="calcular()">
-            <option value="4">4 cilindros</option><option value="6">6 cilindros</option><option value="8">8 cilindros</option>
-          </select></div></div>
-      </div>
-
-      <!-- COMISIÓN -->
-      <div class="card">
-        <div class="card-title">Datos de la comisión</div>
-        <div class="form-grid">
-          <div class="form-group"><label>Programa</label>
-            <select id="programaSelect" onchange="onProgramaSelect()">
-              <option value="">— Seleccionar programa —</option>
-            </select></div>
-          <div class="form-group"><label>Motivo de la comisión</label>
-            <select id="motivoSelect" onchange="onMotivoSelect()">
-              <option value="">— Seleccionar motivo —</option>
-            </select></div>
-          <div class="form-group full"><label>Motivo personalizado</label>
-            <textarea id="motivo" placeholder="O escribe un motivo específico aquí..."></textarea></div>
-          <div class="form-group"><label>📅 Fecha inicial (selecciona)</label>
-            <input type="date" id="fechaIniPicker" onchange="actualizarFechas()"/></div>
-          <div class="form-group"><label>Fecha de expedición (automática)</label>
-            <input type="text" id="fechaExp" readonly placeholder="3 días hábiles antes"/></div>
-          <div class="form-group"><label>Fecha final (automática)</label>
-            <input type="text" id="fechaFin" readonly placeholder="Según días de comisión"/></div>
+      <div class="result-panel">
+        <div class="result-empty" id="resultEmpty"><div class="result-empty-icon">📋</div>Selecciona persona y destino</div>
+        <div id="resultContent" style="display:none">
+          <div class="result-tag" id="resultTag">CÁLCULO</div>
+          <div class="result-title" id="resultDestino">—</div>
+          <div class="result-meta" id="resultMeta">—</div>
+          <div id="resultRows"></div>
+          <hr class="result-divider">
+          <div class="result-total">
+            <div class="result-total-label">Total</div>
+            <div class="result-total-amount" id="resultTotal">—</div>
+          </div>
+          <button class="btn-gen" id="btnGenDoc" onclick="showTab('doc')" disabled>📄 Generar →</button>
+          <button class="btn-reset" onclick="resetCalc()">↺ Nueva solicitud</button>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- RESULTADO -->
-    <div class="result-panel">
-      <div class="result-empty" id="resultEmpty"><div class="result-empty-icon">📋</div>Selecciona persona y destino</div>
-      <div id="resultContent" style="display:none">
-        <div class="result-tag" id="resultTag">CÁLCULO</div>
-        <div class="result-title" id="resultDestino">—</div>
-        <div class="result-meta" id="resultMeta">—</div>
-        <div id="resultRows"></div>
-        <hr class="result-divider">
-        <div class="result-total">
-          <div class="result-total-label">Total</div>
-          <div class="result-total-amount" id="resultTotal">—</div>
+  <!-- DOCUMENTO -->
+  <div class="panel" id="panel-doc">
+    <div class="card">
+      <div class="card-title">Tipo de documento</div>
+      <div class="doc-type-selector">
+        <div class="doc-type-btn selected" id="dtyp-oficio" onclick="selDoc('oficio')">
+          <div class="doc-icon">📋</div><div class="doc-name">Oficio de Comisión</div><div class="doc-desc">Primera solicitud</div></div>
+        <div class="doc-type-btn" id="dtyp-repos" onclick="selDoc('repos')">
+          <div class="doc-icon">🔄</div><div class="doc-name">Reposición</div><div class="doc-desc">Reposición de viáticos</div></div>
+      </div>
+    </div>
+    <div class="card" id="docSummary" style="display:none">
+      <div class="card-title">Resumen</div>
+      <div class="summary-box" id="summaryBox"></div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;" id="emailInfo"></div>
+      <button class="btn-excel" id="btnExcel" onclick="generarYEnviar()">
+        <span id="excelSpinner" class="spinner"></span>
+        <span id="excelBtnText">📊 Generar Excel y enviar correo</span>
+      </button>
+      <div style="margin-top:8px;">
+        <button class="btn-secondary" style="width:100%;text-align:center;font-size:12px;" onclick="showTab('calc')">← Regresar</button>
+      </div>
+      <div class="status-card" id="statusCard">
+        <div class="status-title" id="statusTitle"></div>
+        <div class="status-detail" id="statusDetail"></div>
+      </div>
+    </div>
+    <div class="card" id="docNoCalc">
+      <div style="text-align:center;padding:20px;color:var(--muted);">
+        <div style="font-size:28px;margin-bottom:8px;">📐</div>
+        <p style="font-size:14px;">Primero completa el cálculo en <strong>Calculadora</strong></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PERFILES -->
+  <div class="panel" id="panel-perfiles">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div><div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--navy);">Perfiles del equipo</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px;">Guardados en GitHub — disponibles para todo el equipo</div></div>
+      <button class="btn-primary" onclick="abrirModalPerfil(null)">+ Agregar</button>
+    </div>
+    <div class="perfiles-grid" id="perfilesGrid"></div>
+  </div>
+
+  <!-- PROGRAMAS -->
+  <div class="panel" id="panel-programas">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div><div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--navy);">Programas y Motivos</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px;">Selecciona en la calculadora para prellenar</div></div>
+      <button class="btn-primary" onclick="abrirModalPrograma(null)">+ Agregar</button>
+    </div>
+    <div id="programasList"></div>
+  </div>
+
+  <!-- ADMIN -->
+  <div class="panel" id="panel-admin">
+    <div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--navy);margin-bottom:16px;">⚙️ Panel de Administrador</div>
+
+    <div class="card">
+      <div class="card-title">Gestión del historial</div>
+      <div class="warn-banner">⚠️ Durante pruebas puedes eliminar solicitudes para que no afecten los KPIs reales.</div>
+      <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+        <button class="btn-historial" onclick="descargarHistorial()" style="flex:1;">📥 Descargar Excel</button>
+        <button style="background:#fdf0ef;border:1.5px solid #f5c6c2;color:var(--danger);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:10px 16px;border-radius:8px;cursor:pointer;" onclick="confirmarLimpiarHistorial()">🗑 Limpiar todo</button>
+      </div>
+      <input class="search-input" id="historialSearch" placeholder="🔍 Buscar por nombre, folio o destino..." oninput="renderHistorialAdmin()"/>
+      <div id="historialAdminList" style="overflow-x:auto;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Gestión de usuarios</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Administra los accesos y roles del equipo.</p>
+      <div id="usuariosList"></div>
+      <button class="btn-primary" style="margin-top:12px;" onclick="abrirModalUsuario(null)">+ Agregar usuario</button>
+    </div>
+  </div>
+
+  <!-- ESTADÍSTICAS -->
+  <div class="panel" id="panel-stats">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+      <div><div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--navy);">📊 Estadísticas y Reportes</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px;">Análisis de viáticos generados</div></div>
+    </div>
+
+    <!-- FILTROS -->
+    <div class="dash-filter">
+      <button class="filter-btn active" onclick="setFiltro('todo',this)">Todo el tiempo</button>
+      <button class="filter-btn" onclick="setFiltro('año',this)">Este año</button>
+      <button class="filter-btn" onclick="setFiltro('trimestre',this)">Este trimestre</button>
+      <button class="filter-btn" onclick="setFiltro('mes',this)">Este mes</button>
+    </div>
+
+    <!-- KPIs -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number" id="statTotal">—</div>
+        <div class="stat-label">Total acumulado</div>
+        <div class="stat-sub" id="statTotalSub"></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="statSolicitudes">—</div>
+        <div class="stat-label">Solicitudes generadas</div>
+        <div class="stat-sub" id="statSolSub"></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="statPersonas">—</div>
+        <div class="stat-label">Personas comisionadas</div>
+        <div class="stat-sub" id="statPersSub"></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="statPromedio">—</div>
+        <div class="stat-label">Promedio por solicitud</div>
+        <div class="stat-sub" id="statPromSub"></div>
+      </div>
+    </div>
+
+    <!-- GRÁFICAS -->
+    <div class="charts-grid">
+      <!-- Tendencia mensual -->
+      <div class="chart-card full">
+        <div class="chart-title">📈 Tendencia mensual de viáticos</div>
+        <div class="chart-wrap"><canvas id="chartTendencia"></canvas></div>
+      </div>
+
+      <!-- Ranking personas -->
+      <div class="chart-card">
+        <div class="chart-title">🏆 Top comisionados por monto</div>
+        <div class="ranking-list" id="rankingPersonas"></div>
+      </div>
+
+      <!-- Destinos -->
+      <div class="chart-card">
+        <div class="chart-title">📍 Destinos más frecuentes</div>
+        <div class="chart-wrap"><canvas id="chartDestinos"></canvas></div>
+      </div>
+
+      <!-- Por programa -->
+      <div class="chart-card">
+        <div class="chart-title">📋 Distribución por programa</div>
+        <div class="chart-wrap"><canvas id="chartProgramas"></canvas></div>
+      </div>
+
+      <!-- Tipo de solicitud -->
+      <div class="chart-card">
+        <div class="chart-title">📄 Tipo de documento</div>
+        <div class="chart-wrap" style="height:180px;"><canvas id="chartTipos"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUENTA -->
+  <div class="panel" id="panel-cuenta">
+    <div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--navy);margin-bottom:16px;">🔑 Mi cuenta</div>
+    <div class="card">
+      <div class="card-title">Cambiar contraseña</div>
+      <div class="pass-form">
+        <div class="form-group"><label>Contraseña actual</label>
+          <input type="password" id="passActual" placeholder="Tu contraseña actual"/></div>
+        <div class="form-group"><label>Nueva contraseña</label>
+          <input type="password" id="passNueva" placeholder="Mínimo 6 caracteres"/></div>
+        <div class="form-group"><label>Confirmar nueva contraseña</label>
+          <input type="password" id="passConfirm" placeholder="Repite la nueva contraseña"/></div>
+        <button class="btn-primary" onclick="cambiarPass()" style="width:fit-content;">Cambiar contraseña</button>
+        <div class="status-card" id="passStatus" style="max-width:360px;">
+          <div class="status-title" id="passTxt"></div>
         </div>
-        <button class="btn-gen" id="btnGenDoc" onclick="showTab('doc')" disabled>📄 Generar documento →</button>
-        <button class="btn-reset" onclick="resetCalc()">↺ Nueva solicitud</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ════════════════════════════ GENERAR DOC ════════════════════════════ -->
-<div class="panel" id="panel-doc">
-  <div class="card">
-    <div class="card-title">Tipo de documento</div>
-    <div class="doc-type-selector">
-      <div class="doc-type-btn selected" id="dtyp-oficio" onclick="selDoc('oficio')">
-        <div class="doc-icon">📋</div><div class="doc-name">Solicitud de Oficio de Comisión</div><div class="doc-desc">Primera solicitud</div></div>
-      <div class="doc-type-btn" id="dtyp-repos" onclick="selDoc('repos')">
-        <div class="doc-icon">🔄</div><div class="doc-name">Solicitud de Reposición</div><div class="doc-desc">Reposición de viáticos</div></div>
-    </div>
-  </div>
-  <div class="card" id="docSummary" style="display:none">
-    <div class="card-title">Resumen</div>
-    <div class="summary-box" id="summaryBox"></div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:14px;" id="emailInfo"></div>
-    <button class="btn-excel" id="btnExcel" onclick="generarYEnviar()">
-      <span id="excelSpinner" class="spinner"></span>
-      <span id="excelBtnText">📊 Generar Excel y enviar por correo</span>
-    </button>
-    <div style="margin-top:8px;">
-      <button class="btn-secondary" style="width:100%;text-align:center;font-size:12px;" onclick="showTab('calc')">← Regresar</button>
-    </div>
-    <div class="status-card" id="statusCard">
-      <div class="status-title" id="statusTitle"></div>
-      <div class="status-detail" id="statusDetail"></div>
-    </div>
-  </div>
-  <div class="card" id="docNoCalc">
-    <div style="text-align:center;padding:20px;color:var(--muted);">
-      <div style="font-size:30px;margin-bottom:8px;">📐</div>
-      <p style="font-size:14px;">Primero completa el cálculo en <strong>Calculadora</strong></p>
-    </div>
-  </div>
-</div>
-
-<!-- ════════════════════════════ PERFILES ════════════════════════════ -->
-<div class="panel" id="panel-perfiles">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-    <div><div style="font-family:'Playfair Display',serif;font-size:19px;color:var(--navy);">Perfiles del equipo</div>
-    <div style="font-size:12px;color:var(--muted);margin-top:2px;">Se guardan en GitHub — disponibles para todo el equipo</div></div>
-    <button class="btn-primary" onclick="abrirModalPerfil(null)">+ Agregar</button>
-  </div>
-  <div class="perfiles-grid" id="perfilesGrid"></div>
-</div>
-
-<!-- ════════════════════════════ PROGRAMAS ════════════════════════════ -->
-<div class="panel" id="panel-programas">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-    <div><div style="font-family:'Playfair Display',serif;font-size:19px;color:var(--navy);">Programas y Motivos</div>
-    <div style="font-size:12px;color:var(--muted);margin-top:2px;">Registra los programas y sus motivos frecuentes</div></div>
-    <button class="btn-primary" onclick="abrirModalPrograma(null)">+ Agregar programa</button>
-  </div>
-  <div id="programasList"></div>
-</div>
-
-<!-- ════════ MODAL PERFIL ════════ -->
+<!-- MODAL PERFIL -->
 <div class="modal-overlay" id="modalPerfil">
   <div class="modal">
     <div class="modal-title" id="mPTitle">Nuevo perfil</div>
-    <div class="modal-sub">Datos personales y laborales del comisionado</div>
+    <div class="modal-sub">Datos del comisionado</div>
     <div style="display:flex;flex-direction:column;gap:10px;">
       <div class="modal-section">Datos personales</div>
       <div class="form-grid">
-        <div class="form-group full"><label>Nombre completo *</label>
-          <input type="text" id="mNombre" placeholder="Ej. JUAN PÉREZ LÓPEZ"/></div>
-        <div class="form-group"><label>RFC *</label>
-          <input type="text" id="mRfc" placeholder="Ej. PELJ801230AB1" style="text-transform:uppercase"/></div>
-        <div class="form-group"><label>Correo electrónico *</label>
-          <input type="email" id="mEmail" placeholder="correo@ejemplo.com"/></div>
+        <div class="form-group full"><label>Nombre completo *</label><input type="text" id="mNombre" placeholder="Ej. JUAN PÉREZ LÓPEZ"/></div>
+        <div class="form-group"><label>RFC *</label><input type="text" id="mRfc" placeholder="Ej. PELJ801230AB1" style="text-transform:uppercase"/></div>
+        <div class="form-group"><label>Correo electrónico *</label><input type="email" id="mEmail" placeholder="correo@ejemplo.com"/></div>
       </div>
       <div class="modal-section">Datos laborales</div>
       <div class="form-grid">
-        <div class="form-group"><label>Cargo *</label>
-          <input type="text" id="mCargo" placeholder="Ej. Director de Gestión de Fondos"/></div>
+        <div class="form-group"><label>Cargo *</label><input type="text" id="mCargo" placeholder="Ej. Director de Área"/></div>
         <div class="form-group"><label>Rango *</label>
           <select id="mRango"><option value="">— Seleccionar —</option>
             <option value="secretario">Secretario / Subsecretario</option>
             <option value="director">Director</option>
             <option value="jefe">Jefe de Dpto. / Resto de Personal</option></select></div>
-        <div class="form-group full"><label>Área</label>
-          <input type="text" id="mArea" placeholder="Ej. Subsecretaría de Gestión de Fondos"/></div>
+        <div class="form-group full"><label>Área</label><input type="text" id="mArea" placeholder="Ej. Subsecretaría de Gestión de Fondos"/></div>
       </div>
-      <div class="modal-section">Autorizantes (específicos de esta persona)</div>
+      <div class="modal-section">Autorizantes de esta persona</div>
       <div class="form-grid">
-        <div class="form-group"><label>Nombre — Autorizó 1</label>
-          <input type="text" id="mAuth1n" placeholder="MTRO. FELICIANO CASTRO MELÉNDREZ"/></div>
-        <div class="form-group"><label>Cargo — Autorizó 1</label>
-          <input type="text" id="mAuth1c" placeholder="SECRETARIO DE ECONOMÍA"/></div>
-        <div class="form-group"><label>Nombre — Autorizó 2</label>
-          <input type="text" id="mAuth2n" placeholder="ING. XOCHITL FÉLIX CUADRAS"/></div>
-        <div class="form-group"><label>Cargo — Autorizó 2</label>
-          <input type="text" id="mAuth2c" placeholder="COORDINADORA ADMINISTRATIVA"/></div>
+        <div class="form-group"><label>Nombre — Autorizó 1</label><input type="text" id="mAuth1n" placeholder="MTRO. FELICIANO CASTRO MELÉNDREZ"/></div>
+        <div class="form-group"><label>Cargo — Autorizó 1</label><input type="text" id="mAuth1c" placeholder="SECRETARIO DE ECONOMÍA"/></div>
+        <div class="form-group"><label>Nombre — Autorizó 2</label><input type="text" id="mAuth2n" placeholder="ING. XOCHITL FÉLIX CUADRAS"/></div>
+        <div class="form-group"><label>Cargo — Autorizó 2</label><input type="text" id="mAuth2c" placeholder="COORDINADORA ADMINISTRATIVA"/></div>
       </div>
     </div>
     <div class="modal-actions">
       <button class="btn-danger" id="btnElimPerfil" onclick="eliminarPerfilModal()" style="display:none">🗑 Eliminar</button>
       <button class="btn-secondary" onclick="cerrarModalPerfil()">Cancelar</button>
-      <button class="btn-primary" onclick="guardarPerfil()">Guardar perfil</button>
+      <button class="btn-primary" onclick="guardarPerfil()">Guardar</button>
     </div>
   </div>
 </div>
 
-<!-- ════════ MODAL PROGRAMA ════════ -->
+<!-- MODAL PROGRAMA -->
 <div class="modal-overlay" id="modalPrograma">
   <div class="modal">
     <div class="modal-title" id="mProgTitle">Nuevo programa</div>
     <div class="modal-sub">Agrega el programa y sus motivos frecuentes</div>
     <div style="display:flex;flex-direction:column;gap:10px;">
-      <div class="form-group"><label>Nombre del programa *</label>
-        <input type="text" id="mProgNombre" placeholder="Ej. EQUIPA SINALOA"/></div>
+      <div class="form-group"><label>Nombre del programa *</label><input type="text" id="mProgNombre" placeholder="Ej. EQUIPA SINALOA"/></div>
       <div class="form-group"><label>Motivos frecuentes (uno por línea)</label>
-        <textarea id="mProgMotivos" style="min-height:100px;"
-          placeholder="Ej:&#10;Entrega de equipamiento productivo a beneficiarios en el municipio de Navolato&#10;Supervisión de beneficiarios del programa en Los Mochis&#10;Reunión de seguimiento con beneficiarios"></textarea></div>
+        <textarea id="mProgMotivos" style="min-height:90px;" placeholder="Ej:&#10;Entrega de equipamiento productivo a beneficiarios&#10;Supervisión de beneficiarios en municipio"></textarea></div>
     </div>
     <div class="modal-actions">
       <button class="btn-danger" id="btnElimProg" onclick="eliminarProgModal()" style="display:none">🗑 Eliminar</button>
       <button class="btn-secondary" onclick="cerrarModalPrograma()">Cancelar</button>
-      <button class="btn-primary" onclick="guardarPrograma()">Guardar programa</button>
+      <button class="btn-primary" onclick="guardarPrograma()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL USUARIO -->
+<div class="modal-overlay" id="modalUsuario">
+  <div class="modal">
+    <div class="modal-title" id="mUsrTitle">Nuevo usuario</div>
+    <div class="modal-sub">Gestiona el acceso al sistema</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="form-group"><label>Nombre *</label><input type="text" id="mUsrNombre" placeholder="Nombre del usuario"/></div>
+      <div class="form-group"><label>Correo electrónico *</label><input type="email" id="mUsrEmail" placeholder="correo@ejemplo.com"/></div>
+      <div style="background:#f0f5ff;border:1px solid #c8d8f0;border-radius:8px;padding:10px 12px;font-size:12px;color:#1a4a8a;">
+        ℹ️ El usuario recibirá su acceso con este correo. Al primer inicio creará su propia contraseña.
+      </div>
+      <div class="form-group"><label>Rol</label>
+        <select id="mUsrRole">
+          <option value="user">Usuario — puede generar documentos</option>
+          <option value="admin">Administrador — acceso total</option>
+        </select></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-danger" id="btnElimUsr" onclick="eliminarUsrModal()" style="display:none">🗑 Eliminar</button>
+      <button class="btn-secondary" onclick="cerrarModalUsuario()">Cancelar</button>
+      <button class="btn-primary" onclick="guardarUsuario()">Guardar</button>
     </div>
   </div>
 </div>
 
 <script>
 const SERVER = window.location.origin;
+let authToken = localStorage.getItem('viaticos_token') || '';
+let currentRole = localStorage.getItem('viaticos_role') || '';
+let currentEmail = localStorage.getItem('viaticos_email') || '';
+let currentNombre = localStorage.getItem('viaticos_nombre') || '';
+
 const RANGOS = {
   secretario:{label:'Secretario / Subsecretario',al_sin:760,al_esp:760,taxis:500,hosp:2090},
   director:  {label:'Director',al_sin:450,al_esp:605,taxis:500,hosp:1670},
@@ -459,64 +748,95 @@ const FESTIVOS=[[1,1],[2,5],[3,21],[9,16],[11,2],[11,20],[12,25]];
 
 let conceptos={alimentos:true,hospedaje:false,taxis:false,combustible:false};
 let docType='oficio', ultimoCalculo=null;
-let perfiles=[], programas=[], editPerfilId=null, editProgId=null, perfilActualId=null;
+let perfiles=[], programas=[], usuarios=[];
+let editPerfilId=null, editProgId=null, editUsrId=null, perfilActualId=null;
+let deferredPrompt=null;
 
-// ── LOADING ──────────────────────────────────────────────────────────────────
-function showLoading(txt='Procesando...'){
-  document.getElementById('loadingText').textContent=txt;
-  document.getElementById('loadingOverlay').classList.add('show');
+// ── PWA ───────────────────────────────────────────────────────────────────────
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/sw.js').catch(e=>console.log('SW error:',e));
 }
+window.addEventListener('beforeinstallprompt', e=>{
+  e.preventDefault(); deferredPrompt=e;
+  document.getElementById('installBanner').style.display='block';
+});
+function installPWA(){
+  if(deferredPrompt){deferredPrompt.prompt();deferredPrompt=null;document.getElementById('installBanner').style.display='none';}
+}
+
+// ── LOADING ───────────────────────────────────────────────────────────────────
+function showLoading(txt='Procesando...'){document.getElementById('loadingText').textContent=txt;document.getElementById('loadingOverlay').classList.add('show');}
 function hideLoading(){document.getElementById('loadingOverlay').classList.remove('show');}
 
-// ── FECHA UTILS ───────────────────────────────────────────────────────────────
-function esHabil(d){
-  if(d.getDay()===0||d.getDay()===6)return false;
-  return !FESTIVOS.some(([m,dia])=>d.getMonth()+1===m&&d.getDate()===dia);
-}
-function restarHabiles(fecha,n){
-  let d=new Date(fecha);
-  while(n>0){d.setDate(d.getDate()-1);if(esHabil(d))n--;}
-  return d;
-}
-function fmtDate(d){
-  const dd=String(d.getDate()).padStart(2,'0');
-  const mm=String(d.getMonth()+1).padStart(2,'0');
-  return `${dd}/${mm}/${d.getFullYear()}`;
-}
+// ── AUTH HEADERS ──────────────────────────────────────────────────────────────
+function authHeaders(){return{'Content-Type':'application/json','Authorization':`Bearer ${authToken}`};}
 
-function actualizarFechas(){
-  const pickerVal=document.getElementById('fechaIniPicker').value;
-  const dias=Math.max(1,parseInt(document.getElementById('dias').value)||1);
-  if(!pickerVal)return;
-  const [y,m,d]=pickerVal.split('-').map(Number);
-  const fechaIni=new Date(y,m-1,d);
-  const fechaFin=new Date(fechaIni);
-  fechaFin.setDate(fechaFin.getDate()+(dias-1));
-  const fechaExp=restarHabiles(fechaIni,3);
-  document.getElementById('fechaExp').value=fmtDate(fechaExp);
-  document.getElementById('fechaFin').value=fmtDate(fechaFin);
-}
-
-// ── API DATOS ─────────────────────────────────────────────────────────────────
-async function cargarDatos(){
-  showLoading('Cargando datos del equipo...');
+// ── LOGIN ─────────────────────────────────────────────────────────────────────
+async function doLogin(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const pass=document.getElementById('loginPass').value;
+  const errEl=document.getElementById('loginError');
+  errEl.style.display='none';
+  if(!email||!pass){errEl.textContent='Completa todos los campos';errEl.style.display='block';return;}
+  showLoading('Iniciando sesión...');
   try{
-    const r=await fetch(`${SERVER}/api/data`);
+    const r=await fetch(`${SERVER}/api/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
+    const data=await r.json();
+    hideLoading();
+    if(data.ok){
+      authToken=data.token; currentRole=data.role; currentEmail=email; currentNombre=data.nombre||email;
+      localStorage.setItem('viaticos_token',authToken);
+      localStorage.setItem('viaticos_role',currentRole);
+      localStorage.setItem('viaticos_email',currentEmail);
+      localStorage.setItem('viaticos_nombre',currentNombre);
+      iniciarApp();
+    } else {
+      errEl.textContent=data.error||'Error al iniciar sesión';errEl.style.display='block';
+    }
+  }catch(e){hideLoading();errEl.textContent='Error de conexión. Intenta de nuevo.';errEl.style.display='block';}
+}
+
+function doLogout(){
+  authToken='';currentRole='';currentEmail='';currentNombre='';
+  localStorage.removeItem('viaticos_token');localStorage.removeItem('viaticos_role');
+  localStorage.removeItem('viaticos_email');localStorage.removeItem('viaticos_nombre');
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('appScreen').style.display='none';
+}
+
+async function iniciarApp(){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('appScreen').style.display='block';
+  // Top bar
+  document.getElementById('topUserEmail').textContent=currentNombre||currentEmail;
+  const rb=document.getElementById('topRoleBadge');
+  rb.innerHTML=currentRole==='admin'?'<span class="admin-chip">ADMIN</span>':'';
+  // Mostrar tab admin si es admin
+  document.getElementById('tabAdmin').style.display=currentRole==='admin'?'block':'none';
+  document.getElementById('tabStats').style.display=currentRole==='admin'?'block':'none';
+  // Cargar datos
+  await cargarDatos();
+}
+
+// ── API ───────────────────────────────────────────────────────────────────────
+async function cargarDatos(){
+  showLoading('Cargando datos...');
+  try{
+    const r=await fetch(`${SERVER}/api/data`,{headers:authHeaders()});
+    if(r.status===401){hideLoading();doLogout();return;}
     const data=await r.json();
     perfiles=data.perfiles||[];
     programas=data.programas||[];
+    usuarios=data.usuarios||[];
   }catch(e){perfiles=[];programas=[];}
   hideLoading();
   renderPerfiles();renderProgramas();poblarSelects();
+  if(currentRole==='admin')renderUsuarios();
 }
 
-async function guardarDatos(){
+async function guardarDatos(payload){
   try{
-    await fetch(`${SERVER}/api/save`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({perfiles,programas})
-    });
+    await fetch(`${SERVER}/api/save`,{method:'POST',headers:authHeaders(),body:JSON.stringify(payload)});
   }catch(e){console.error('Error guardando:',e);}
 }
 
@@ -524,9 +844,8 @@ async function guardarDatos(){
 function showTab(t){
   document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(el=>el.classList.remove('active'));
-  ['calc','doc','perfiles','programas'].forEach((n,i)=>{
-    if(n===t){document.querySelectorAll('.tab')[i].classList.add('active');document.getElementById('panel-'+n).classList.add('active');}
-  });
+  const tabs=['calc','doc','perfiles','programas','admin','stats','cuenta'];
+  tabs.forEach((n,i)=>{if(n===t){document.querySelectorAll('.tab')[i]?.classList.add('active');document.getElementById('panel-'+n)?.classList.add('active');}});
   if(t==='doc')prepDoc();
 }
 
@@ -534,13 +853,28 @@ function showTab(t){
 function ini(n){const p=n.trim().split(' ');return(p[0][0]+(p[1]?p[1][0]:'')).toUpperCase();}
 function fmt(n){return'$'+n.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2});}
 
+const FESTIVOS_SET=new Set(FESTIVOS.map(([m,d])=>`${m}-${d}`));
+function esHabil(d){if(d.getDay()===0||d.getDay()===6)return false;return!FESTIVOS_SET.has(`${d.getMonth()+1}-${d.getDate()}`);}
+function restarHabiles(fecha,n){let d=new Date(fecha);while(n>0){d.setDate(d.getDate()-1);if(esHabil(d))n--;}return d;}
+function fmtDate(d){return`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;}
+
+function actualizarFechas(){
+  const v=document.getElementById('fechaIniPicker').value;
+  const dias=Math.max(1,parseInt(document.getElementById('dias').value)||1);
+  if(!v)return;
+  const[y,m,d]=v.split('-').map(Number);
+  const fi=new Date(y,m-1,d);
+  const ff=new Date(fi);ff.setDate(ff.getDate()+(dias-1));
+  const fe=restarHabiles(fi,3);
+  document.getElementById('fechaExp').value=fmtDate(fe);
+  document.getElementById('fechaFin').value=fmtDate(ff);
+}
+
 function poblarSelects(){
-  // Select persona
   const sp=document.getElementById('selectPersona'),vp=sp.value;
   sp.innerHTML='<option value="">— Seleccionar persona —</option>';
   perfiles.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.nombre;sp.appendChild(o);});
   if(vp)sp.value=vp;
-  // Select programas
   const spr=document.getElementById('programaSelect');
   spr.innerHTML='<option value="">— Seleccionar programa —</option>';
   programas.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.nombre;spr.appendChild(o);});
@@ -549,46 +883,35 @@ function poblarSelects(){
 // ── PERFILES ──────────────────────────────────────────────────────────────────
 function renderPerfiles(){
   const g=document.getElementById('perfilesGrid');
-  if(!perfiles.length){
-    g.innerHTML='<div class="empty-state"><div class="icon">👤</div><p style="font-size:14px;font-weight:600;">Sin perfiles registrados</p><p style="font-size:12px;margin-top:4px;">Agrega a tu equipo para agilizar las solicitudes</p></div>';
-    return;
-  }
+  if(!perfiles.length){g.innerHTML='<div class="empty-state"><div class="icon">👤</div><p style="font-size:14px;font-weight:600;">Sin perfiles registrados</p></div>';return;}
+  const esAdmin=currentRole==='admin';
   g.innerHTML=perfiles.map(p=>`<div class="perfil-card">
     <div class="perfil-card-top">
       <div class="perfil-card-avatar">${ini(p.nombre)}</div>
       <div><div class="perfil-card-name">${p.nombre}</div><div class="perfil-card-rango">${RANGOS[p.rango]?.label||'—'}</div></div>
     </div>
     <div class="perfil-card-details">
-      <span>📋 ${p.cargo||'—'}</span>
-      <span>🪪 ${p.rfc||'—'}</span>
-      <span>✉️ ${p.email||'—'}</span>
-      ${p.area?`<span>🏢 ${p.area}</span>`:''}
-      ${p.auth1_nombre?`<span style="margin-top:4px;color:#333;font-weight:600;">Autorizó 1: ${p.auth1_nombre}</span>`:''}
-      ${p.auth2_nombre?`<span style="color:#333;font-weight:600;">Autorizó 2: ${p.auth2_nombre}</span>`:''}
+      <span>📋 ${p.cargo||'—'}</span><span>🪪 ${p.rfc||'—'}</span><span>✉️ ${p.email||'—'}</span>
+      ${p.auth1_nombre?`<span style="font-weight:600;color:#333;">✓ ${p.auth1_nombre}</span>`:''}
     </div>
     <div class="perfil-card-actions">
-      <button class="btn-sm btn-sm-edit" onclick="abrirModalPerfil('${p.id}')">✏ Editar</button>
-      <button class="btn-sm btn-sm-del" onclick="confirmarElimPerfil('${p.id}')">🗑 Eliminar</button>
+      ${esAdmin?`<button class="btn-sm btn-sm-edit" onclick="abrirModalPerfil('${p.id}')">✏ Editar</button><button class="btn-sm btn-sm-del" onclick="confirmarElimPerfil('${p.id}')">🗑</button>`:'<span style="font-size:11px;color:var(--muted);">Solo admins pueden editar</span>'}
     </div>
   </div>`).join('');
 }
 
 function abrirModalPerfil(id){
+  const esAdmin=currentRole==='admin';
   editPerfilId=id;
-  document.getElementById('btnElimPerfil').style.display=id?'block':'none';
+  document.getElementById('btnElimPerfil').style.display=(id&&esAdmin)?'block':'none';
   if(id){
     const p=perfiles.find(x=>x.id===id);
     document.getElementById('mPTitle').textContent='Editar perfil';
-    document.getElementById('mNombre').value=p.nombre||'';
-    document.getElementById('mRfc').value=p.rfc||'';
-    document.getElementById('mEmail').value=p.email||'';
-    document.getElementById('mCargo').value=p.cargo||'';
-    document.getElementById('mRango').value=p.rango||'';
-    document.getElementById('mArea').value=p.area||'';
-    document.getElementById('mAuth1n').value=p.auth1_nombre||'';
-    document.getElementById('mAuth1c').value=p.auth1_cargo||'';
-    document.getElementById('mAuth2n').value=p.auth2_nombre||'';
-    document.getElementById('mAuth2c').value=p.auth2_cargo||'';
+    document.getElementById('mNombre').value=p.nombre||'';document.getElementById('mRfc').value=p.rfc||'';
+    document.getElementById('mEmail').value=p.email||'';document.getElementById('mCargo').value=p.cargo||'';
+    document.getElementById('mRango').value=p.rango||'';document.getElementById('mArea').value=p.area||'';
+    document.getElementById('mAuth1n').value=p.auth1_nombre||'';document.getElementById('mAuth1c').value=p.auth1_cargo||'';
+    document.getElementById('mAuth2n').value=p.auth2_nombre||'';document.getElementById('mAuth2c').value=p.auth2_cargo||'';
   } else {
     document.getElementById('mPTitle').textContent='Nuevo perfil';
     ['mNombre','mRfc','mEmail','mCargo','mArea','mAuth1n','mAuth1c','mAuth2n','mAuth2c'].forEach(i=>document.getElementById(i).value='');
@@ -605,46 +928,39 @@ async function guardarPerfil(){
   const c=document.getElementById('mCargo').value.trim();
   const rg=document.getElementById('mRango').value;
   if(!n||!r||!e||!c||!rg){alert('Completa los campos obligatorios (*)');return;}
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)){alert('El correo electrónico no es válido');return;}
-  const datos={
-    nombre:n,rfc:r,email:e,cargo:c,rango:rg,
-    area:document.getElementById('mArea').value.trim(),
-    auth1_nombre:document.getElementById('mAuth1n').value.trim(),
-    auth1_cargo:document.getElementById('mAuth1c').value.trim(),
-    auth2_nombre:document.getElementById('mAuth2n').value.trim(),
-    auth2_cargo:document.getElementById('mAuth2c').value.trim(),
-  };
-  if(editPerfilId){
-    const i=perfiles.findIndex(x=>x.id===editPerfilId);
-    if(i>=0)perfiles[i]={...perfiles[i],...datos};
-  } else {
-    perfiles.push({id:'p_'+Date.now(),...datos});
-  }
+  const datos={nombre:n,rfc:r,email:e,cargo:c,rango:rg,area:document.getElementById('mArea').value.trim(),
+    auth1_nombre:document.getElementById('mAuth1n').value.trim(),auth1_cargo:document.getElementById('mAuth1c').value.trim(),
+    auth2_nombre:document.getElementById('mAuth2n').value.trim(),auth2_cargo:document.getElementById('mAuth2c').value.trim()};
   showLoading('Guardando perfil...');
-  await guardarDatos();
-  hideLoading();
-  renderPerfiles();poblarSelects();cerrarModalPerfil();
+  if(currentRole==='admin'){
+    if(editPerfilId){const i=perfiles.findIndex(x=>x.id===editPerfilId);if(i>=0)perfiles[i]={...perfiles[i],...datos};}
+    else perfiles.push({id:'p_'+Date.now(),...datos});
+    await guardarDatos({perfiles});
+  } else {
+    // Usuario normal: solo puede agregar
+    if(editPerfilId){hideLoading();alert('Solo los administradores pueden editar perfiles existentes.');return;}
+    const nuevo={id:'p_'+Date.now(),...datos};
+    await guardarDatos({perfiles_add:nuevo});
+    perfiles.push(nuevo);
+  }
+  hideLoading();renderPerfiles();poblarSelects();cerrarModalPerfil();
   if(editPerfilId===perfilActualId)actualizarBadge(perfilActualId);
 }
 async function confirmarElimPerfil(id){
+  if(currentRole!=='admin'){alert('Solo los administradores pueden eliminar perfiles.');return;}
   if(!confirm('¿Eliminar este perfil?'))return;
   perfiles=perfiles.filter(x=>x.id!==id);
-  showLoading('Eliminando...');
-  await guardarDatos();hideLoading();
-  renderPerfiles();poblarSelects();
-  if(perfilActualId===id){perfilActualId=null;limpiarBadge();}
+  showLoading('Eliminando...');await guardarDatos({perfiles});hideLoading();
+  renderPerfiles();poblarSelects();if(perfilActualId===id){perfilActualId=null;limpiarBadge();}
 }
 function eliminarPerfilModal(){if(editPerfilId)confirmarElimPerfil(editPerfilId);cerrarModalPerfil();}
 
 function cargarPerfil(){
-  const id=document.getElementById('selectPersona').value;
-  perfilActualId=id||null;
+  const id=document.getElementById('selectPersona').value;perfilActualId=id||null;
   if(!id){limpiarBadge();return;}
   const p=perfiles.find(x=>x.id===id);if(!p)return;
-  document.getElementById('nombre').value=p.nombre;
-  document.getElementById('rfc').value=p.rfc;
-  document.getElementById('cargo').value=p.cargo;
-  document.getElementById('rango').value=p.rango;
+  document.getElementById('nombre').value=p.nombre;document.getElementById('rfc').value=p.rfc;
+  document.getElementById('cargo').value=p.cargo;document.getElementById('rango').value=p.rango;
   actualizarBadge(id);calcular();
 }
 function actualizarBadge(id){
@@ -652,10 +968,11 @@ function actualizarBadge(id){
   document.getElementById('perfilBadge').style.display='flex';
   document.getElementById('badgeAvatar').textContent=ini(p.nombre);
   document.getElementById('badgeName').textContent=p.nombre;
-  document.getElementById('badgeDetail').textContent=(RANGOS[p.rango]?.label||'—')+' · '+p.cargo+(p.area?' · '+p.area:'');
+  document.getElementById('badgeDetail').textContent=(RANGOS[p.rango]?.label||'—')+' · '+p.cargo;
   const ec=document.getElementById('badgeEmail');
   if(p.email){ec.style.display='inline-flex';document.getElementById('badgeEmailTxt').textContent=p.email;}
   else ec.style.display='none';
+  document.getElementById('btnEditarActual').style.display=currentRole==='admin'?'block':'none';
   document.getElementById('camposPersona').style.display='none';
 }
 function limpiarBadge(){
@@ -664,21 +981,16 @@ function limpiarBadge(){
   ['nombre','rfc','cargo'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('rango').value='';calcular();
 }
-function editarActual(){if(perfilActualId)abrirModalPerfil(perfilActualId);}
+function editarActual(){if(perfilActualId&&currentRole==='admin')abrirModalPerfil(perfilActualId);}
 
 // ── PROGRAMAS ──────────────────────────────────────────────────────────────────
 function renderProgramas(){
   const el=document.getElementById('programasList');
-  if(!programas.length){
-    el.innerHTML='<div class="empty-state"><div class="icon">📋</div><p style="font-size:14px;font-weight:600;">Sin programas registrados</p><p style="font-size:12px;margin-top:4px;">Agrega programas y sus motivos frecuentes</p></div>';
-    return;
-  }
+  if(!programas.length){el.innerHTML='<div class="empty-state"><div class="icon">📋</div><p style="font-size:14px;font-weight:600;">Sin programas</p></div>';return;}
   el.innerHTML=programas.map(p=>`<div class="programa-item">
     <div class="programa-item-info">
       <div class="programa-item-name">${p.nombre}</div>
-      <div class="programa-item-motivos" style="margin-top:6px;">
-        ${(p.motivos||[]).map(m=>`<span class="motivo-tag">${m.substring(0,60)}${m.length>60?'...':''}</span>`).join('')}
-      </div>
+      <div style="margin-top:6px;">${(p.motivos||[]).map(m=>`<span class="motivo-tag">${m.substring(0,60)}${m.length>60?'...':''}</span>`).join('')}</div>
     </div>
     <div style="display:flex;gap:6px;flex-shrink:0;">
       <button class="btn-sm btn-sm-edit" onclick="abrirModalPrograma('${p.id}')">✏</button>
@@ -686,43 +998,26 @@ function renderProgramas(){
     </div>
   </div>`).join('');
 }
-
 function abrirModalPrograma(id){
-  editProgId=id;
-  document.getElementById('btnElimProg').style.display=id?'block':'none';
-  if(id){
-    const p=programas.find(x=>x.id===id);
-    document.getElementById('mProgTitle').textContent='Editar programa';
-    document.getElementById('mProgNombre').value=p.nombre||'';
-    document.getElementById('mProgMotivos').value=(p.motivos||[]).join('\n');
-  } else {
-    document.getElementById('mProgTitle').textContent='Nuevo programa';
-    document.getElementById('mProgNombre').value='';
-    document.getElementById('mProgMotivos').value='';
-  }
+  editProgId=id;document.getElementById('btnElimProg').style.display=id?'block':'none';
+  if(id){const p=programas.find(x=>x.id===id);document.getElementById('mProgTitle').textContent='Editar programa';document.getElementById('mProgNombre').value=p.nombre||'';document.getElementById('mProgMotivos').value=(p.motivos||[]).join('\n');}
+  else{document.getElementById('mProgTitle').textContent='Nuevo programa';document.getElementById('mProgNombre').value='';document.getElementById('mProgMotivos').value='';}
   document.getElementById('modalPrograma').classList.add('open');
 }
 function cerrarModalPrograma(){document.getElementById('modalPrograma').classList.remove('open');}
-
 async function guardarPrograma(){
   const n=document.getElementById('mProgNombre').value.trim();
   if(!n){alert('Escribe el nombre del programa');return;}
   const motivos=document.getElementById('mProgMotivos').value.split('\n').map(s=>s.trim()).filter(Boolean);
-  if(editProgId){
-    const i=programas.findIndex(x=>x.id===editProgId);
-    if(i>=0)programas[i]={...programas[i],nombre:n,motivos};
-  } else {
-    programas.push({id:'prog_'+Date.now(),nombre:n,motivos});
-  }
-  showLoading('Guardando programa...');
-  await guardarDatos();hideLoading();
+  if(editProgId){const i=programas.findIndex(x=>x.id===editProgId);if(i>=0)programas[i]={...programas[i],nombre:n,motivos};}
+  else programas.push({id:'prog_'+Date.now(),nombre:n,motivos});
+  showLoading('Guardando...');await guardarDatos({programas});hideLoading();
   renderProgramas();poblarSelects();cerrarModalPrograma();
 }
 async function confirmarElimProg(id){
   if(!confirm('¿Eliminar este programa?'))return;
   programas=programas.filter(x=>x.id!==id);
-  showLoading('Eliminando...');
-  await guardarDatos();hideLoading();
+  showLoading('Eliminando...');await guardarDatos({programas});hideLoading();
   renderProgramas();poblarSelects();
 }
 function eliminarProgModal(){if(editProgId)confirmarElimProg(editProgId);cerrarModalPrograma();}
@@ -733,12 +1028,115 @@ function onProgramaSelect(){
   ms.innerHTML='<option value="">— Seleccionar motivo —</option>';
   if(!id)return;
   const p=programas.find(x=>x.id===id);
-  if(!p||!p.motivos)return;
-  p.motivos.forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m.substring(0,70)+(m.length>70?'...':'');ms.appendChild(o);});
+  (p?.motivos||[]).forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m.substring(0,70)+(m.length>70?'...':'');ms.appendChild(o);});
 }
-function onMotivoSelect(){
-  const v=document.getElementById('motivoSelect').value;
-  if(v)document.getElementById('motivo').value=v;
+function onMotivoSelect(){const v=document.getElementById('motivoSelect').value;if(v)document.getElementById('motivo').value=v;}
+
+// ── ADMIN ─────────────────────────────────────────────────────────────────────
+function renderUsuarios(){
+  const el=document.getElementById('usuariosList');
+  if(!usuarios.length){el.innerHTML='<p style="color:var(--muted);font-size:13px;">Sin usuarios registrados</p>';return;}
+  el.innerHTML=usuarios.map(u=>`<div class="usuario-row">
+    <div class="usuario-info">
+      <div class="usuario-email">${u.nombre||u.email}</div>
+      <div class="usuario-email" style="font-weight:400;color:var(--muted);font-size:12px;">${u.email}</div>
+      <div class="usuario-role ${u.role==='admin'?'role-admin':'role-user'}">${u.role==='admin'?'⭐ Administrador':'👤 Usuario'}</div>
+    </div>
+    <div class="usuario-actions">
+      <button class="btn-role" onclick="abrirModalUsuario('${u.email}')">${u.email===currentEmail?'✏ Mi cuenta':'✏ Editar'}</button>
+    </div>
+  </div>`).join('');
+}
+
+function abrirModalUsuario(email){
+  editUsrId=email;
+  document.getElementById('btnElimUsr').style.display=(email&&email!==currentEmail)?'block':'none';
+  if(email){
+    const u=usuarios.find(x=>x.email===email);
+    document.getElementById('mUsrTitle').textContent='Editar usuario';
+    document.getElementById('mUsrNombre').value=u?.nombre||'';
+    document.getElementById('mUsrEmail').value=u?.email||'';
+    document.getElementById('mUsrPass').value='';
+    document.getElementById('mUsrRole').value=u?.role||'user';
+  } else {
+    document.getElementById('mUsrTitle').textContent='Nuevo usuario';
+    ['mUsrNombre','mUsrEmail','mUsrPass'].forEach(i=>document.getElementById(i).value='');
+    document.getElementById('mUsrRole').value='user';
+  }
+  document.getElementById('modalUsuario').classList.add('open');
+}
+function cerrarModalUsuario(){document.getElementById('modalUsuario').classList.remove('open');}
+
+async function guardarUsuario(){
+  const n=document.getElementById('mUsrNombre').value.trim();
+  const e=document.getElementById('mUsrEmail').value.trim().toLowerCase();
+  const r=document.getElementById('mUsrRole').value;
+  if(!n||!e){alert('Nombre y correo son obligatorios');return;}
+  showLoading('Guardando usuario...');
+  try{
+    const data=await (await fetch(`${SERVER}/api/data`,{headers:authHeaders()})).json();
+    let usrs=data.usuarios||[];
+    if(editUsrId){
+      const i=usrs.findIndex(x=>x.email===editUsrId);
+      if(i>=0){usrs[i].nombre=n;usrs[i].role=r;}
+    } else {
+      // No password — user will set it on first login
+      usrs.push({email:e,nombre:n,role:r,pass_hash:''});
+    }
+    await fetch(`${SERVER}/api/usuarios/save`,{method:'POST',headers:authHeaders(),body:JSON.stringify({usuarios:usrs})});
+    usuarios=usrs;
+    hideLoading();renderUsuarios();cerrarModalUsuario();
+  }catch(err){hideLoading();alert('Error: '+err.message);}
+}
+async function eliminarUsrModal(){
+  if(!editUsrId||!confirm('¿Eliminar este usuario?'))return;
+  showLoading('Eliminando...');
+  try{
+    const data=await (await fetch(`${SERVER}/api/data`,{headers:authHeaders()})).json();
+    const usrs=(data.usuarios||[]).filter(x=>x.email!==editUsrId);
+    await fetch(`${SERVER}/api/usuarios/save`,{method:'POST',headers:authHeaders(),body:JSON.stringify({usuarios:usrs})});
+    usuarios=usrs;hideLoading();renderUsuarios();cerrarModalUsuario();
+  }catch(err){hideLoading();alert('Error: '+err.message);}
+}
+
+async function hashClient(str){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+async function descargarHistorial(){
+  showLoading('Generando historial...');
+  try{
+    const r=await fetch(`${SERVER}/api/historial`,{headers:authHeaders()});
+    if(!r.ok)throw new Error('Error '+r.status);
+    const blob=await r.blob();
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download='Historial_Viaticos.xlsx';a.click();URL.revokeObjectURL(url);
+  }catch(e){alert('Error al descargar: '+e.message);}
+  hideLoading();
+}
+
+// ── CAMBIAR CONTRASEÑA ────────────────────────────────────────────────────────
+async function cambiarPass(){
+  const old=document.getElementById('passActual').value;
+  const nw=document.getElementById('passNueva').value;
+  const cf=document.getElementById('passConfirm').value;
+  const sc=document.getElementById('passStatus');
+  const txt=document.getElementById('passTxt');
+  if(!old||!nw||!cf){sc.className='status-card status-err';sc.style.display='block';txt.textContent='Completa todos los campos';return;}
+  if(nw!==cf){sc.className='status-card status-err';sc.style.display='block';txt.textContent='Las contraseñas no coinciden';return;}
+  if(nw.length<6){sc.className='status-card status-err';sc.style.display='block';txt.textContent='Mínimo 6 caracteres';return;}
+  showLoading('Cambiando contraseña...');
+  try{
+    const r=await fetch(`${SERVER}/api/cambiar-pass`,{method:'POST',headers:authHeaders(),body:JSON.stringify({old_password:old,new_password:nw})});
+    const data=await r.json();hideLoading();
+    if(data.ok){
+      sc.className='status-card status-ok';sc.style.display='block';txt.textContent='✅ Contraseña cambiada correctamente';
+      ['passActual','passNueva','passConfirm'].forEach(i=>document.getElementById(i).value='');
+    } else {
+      sc.className='status-card status-err';sc.style.display='block';txt.textContent=data.error||'Error al cambiar contraseña';
+    }
+  }catch(e){hideLoading();sc.className='status-card status-err';sc.style.display='block';txt.textContent='Error de conexión';}
 }
 
 // ── CALCULADORA ───────────────────────────────────────────────────────────────
@@ -748,48 +1146,41 @@ function toggleC(id){
   if(id==='combustible')document.getElementById('grupCil').style.display=conceptos[id]?'block':'none';
   calcular();
 }
-
 function onTipoChange(){
   const tipo=document.getElementById('tipoViaje').value;
   const sel=document.getElementById('destino');
   sel.disabled=false;sel.innerHTML='<option value="">— Seleccionar destino —</option>';
   let lista=tipo==='sinaloa'?D_SIN:tipo==='especial'?D_ESP:D_NAC;
   lista.forEach(d=>{const o=document.createElement('option');o.value=d.id;o.textContent=d.n;sel.appendChild(o);});
-  document.getElementById('destinoCustom').value='';
-  calcular();
+  document.getElementById('destinoCustom').value='';calcular();
 }
-
 function onDestinoChange(){
   const tipo=document.getElementById('tipoViaje').value;
   const destId=document.getElementById('destino').value;
   let lista=tipo==='sinaloa'?D_SIN:tipo==='especial'?D_ESP:D_NAC;
   const dest=lista.find(d=>d.id===destId);
-  if(dest) document.getElementById('destinoCustom').value=dest.n;
+  if(dest)document.getElementById('destinoCustom').value=dest.n;
   calcular();
 }
 
 function calcular(){
-  const rK=document.getElementById('rango').value;
-  const tipo=document.getElementById('tipoViaje').value;
-  const destId=document.getElementById('destino').value;
-  const destCustom=document.getElementById('destinoCustom').value.trim();
+  const rK=document.getElementById('rango').value,tipo=document.getElementById('tipoViaje').value;
+  const destId=document.getElementById('destino').value,destCustom=document.getElementById('destinoCustom').value.trim();
   const dias=Math.max(1,parseInt(document.getElementById('dias').value)||1);
   const noches=Math.max(0,parseInt(document.getElementById('noches').value)||0);
   const cil=document.getElementById('cilindros').value;
   if(!rK||!tipo||(!destId&&!destCustom)){
     document.getElementById('resultEmpty').style.display='block';
     document.getElementById('resultContent').style.display='none';
-    document.getElementById('btnGenDoc').disabled=true;
-    ultimoCalculo=null;return;
+    document.getElementById('btnGenDoc').disabled=true;ultimoCalculo=null;return;
   }
-  const rango=RANGOS[rK];
-  let rows=[],total=0;
+  const rango=RANGOS[rK];let rows=[],total=0;
   let lista=tipo==='sinaloa'?D_SIN:tipo==='especial'?D_ESP:D_NAC;
   const dest=lista.find(d=>d.id===destId)||null;
   const destNombre=destCustom||(dest?dest.n:destId);
   let montos={alimentos:0,hospedaje:0,taxis:0,combustible:0,peajes:0};
-  const tarifaAlim=tipo==='sinaloa'?rango.al_sin:rango.al_esp;
-  if(conceptos.alimentos&&dias>0){const m=tarifaAlim*dias;total+=m;montos.alimentos=m;rows.push({label:'Alimentos',detail:`${dias} día(s) × ${fmt(tarifaAlim)}/día`,amount:m});}
+  const ta=tipo==='sinaloa'?rango.al_sin:rango.al_esp;
+  if(conceptos.alimentos&&dias>0){const m=ta*dias;total+=m;montos.alimentos=m;rows.push({label:'Alimentos',detail:`${dias} día(s) × ${fmt(ta)}/día`,amount:m});}
   if(conceptos.hospedaje&&noches>0){const m=rango.hosp*noches;total+=m;montos.hospedaje=m;rows.push({label:'Hospedaje',detail:`${noches} noche(s) × ${fmt(rango.hosp)}/noche`,amount:m});}
   if(conceptos.taxis&&dias>0){const m=rango.taxis*dias;total+=m;montos.taxis=m;rows.push({label:'Taxis',detail:`${dias} día(s) × ${fmt(rango.taxis)}/día`,amount:m});}
   if(conceptos.combustible&&dest){
@@ -814,7 +1205,6 @@ function calcular(){
   document.getElementById('btnGenDoc').disabled=false;
   ultimoCalculo={rows,total,destNombre,tipo,rK,dias,noches,montos};
 }
-
 function resetCalc(){
   document.getElementById('tipoViaje').value='';
   document.getElementById('destino').innerHTML='<option value="">— Primero elige el tipo —</option>';
@@ -823,7 +1213,8 @@ function resetCalc(){
   document.getElementById('dias').value=1;document.getElementById('noches').value=0;
   document.getElementById('fechaIniPicker').value='';
   document.getElementById('fechaExp').value='';document.getElementById('fechaFin').value='';
-  document.getElementById('programaSelect').value='';document.getElementById('motivoSelect').innerHTML='<option value="">—</option>';
+  document.getElementById('programaSelect').value='';
+  document.getElementById('motivoSelect').innerHTML='<option value="">—</option>';
   document.getElementById('motivo').value='';
   document.getElementById('resultEmpty').style.display='block';
   document.getElementById('resultContent').style.display='none';
@@ -831,107 +1222,386 @@ function resetCalc(){
 }
 
 // ── DOCUMENTO ─────────────────────────────────────────────────────────────────
-function selDoc(t){
-  docType=t;
-  document.getElementById('dtyp-oficio').classList.toggle('selected',t==='oficio');
-  document.getElementById('dtyp-repos').classList.toggle('selected',t==='repos');
-}
+function selDoc(t){docType=t;document.getElementById('dtyp-oficio').classList.toggle('selected',t==='oficio');document.getElementById('dtyp-repos').classList.toggle('selected',t==='repos');}
 function prepDoc(){
   const has=!!ultimoCalculo;
   document.getElementById('docSummary').style.display=has?'block':'none';
   document.getElementById('docNoCalc').style.display=has?'none':'block';
   if(!has)return;
-  const sb=document.getElementById('summaryBox');
-  sb.innerHTML=ultimoCalculo.rows.map(r=>`<div class="s-row"><span>${r.label}</span><span>${fmt(r.amount)}</span></div>`).join('')
-    +`<div class="s-total"><span>TOTAL</span><span>${fmt(ultimoCalculo.total)}</span></div>`;
+  document.getElementById('summaryBox').innerHTML=
+    ultimoCalculo.rows.map(r=>`<div class="s-row"><span>${r.label}</span><span>${fmt(r.amount)}</span></div>`).join('')+
+    `<div class="s-total"><span>TOTAL</span><span>${fmt(ultimoCalculo.total)}</span></div>`;
   const p=perfiles.find(x=>x.id===perfilActualId);
-  const ei=document.getElementById('emailInfo');
-  ei.innerHTML=p?.email
+  document.getElementById('emailInfo').innerHTML=p?.email
     ?`✉️ Se enviará a: <strong>${p.email}</strong>`
-    :'⚠️ Sin correo registrado — solo se descargará el archivo.';
+    :'⚠️ Sin correo — solo se descargará el archivo.';
   document.getElementById('statusCard').style.display='none';
-  document.getElementById('excelBtnText').textContent='📊 Generar Excel y enviar por correo';
 }
 
 async function generarYEnviar(){
   if(!ultimoCalculo)return;
-  const btn=document.getElementById('btnExcel');
-  const sp=document.getElementById('excelSpinner');
-  const bt=document.getElementById('excelBtnText');
+  const btn=document.getElementById('btnExcel'),sp=document.getElementById('excelSpinner'),bt=document.getElementById('excelBtnText');
   btn.disabled=true;sp.style.display='inline-block';bt.textContent='Generando...';
   document.getElementById('statusCard').style.display='none';
-
   const p=perfiles.find(x=>x.id===perfilActualId);
   const {total,destNombre,montos}=ultimoCalculo;
-  const pickerVal=document.getElementById('fechaIniPicker').value;
-  let fechaIniStr='';
-  if(pickerVal){const[y,m,d]=pickerVal.split('-');fechaIniStr=`${d}/${m}/${y}`;}
-
+  const pv=document.getElementById('fechaIniPicker').value;
+  let fi='';if(pv){const[y,m,d]=pv.split('-');fi=`${d}/${m}/${y}`;}
+  const progSel=document.getElementById('programaSelect');
+  const progNombre=progSel.selectedIndex>0?progSel.options[progSel.selectedIndex].text:'';
   const payload={
-    titulo: docType==='repos'?'SOLICITUD DE REPOSICIÓN DE VIÁTICOS':'SOLICITUD DE OFICIO DE COMISIÓN',
-    programa: document.getElementById('programaSelect').options[document.getElementById('programaSelect').selectedIndex]?.text||'',
-    rfc:    document.getElementById('rfc').value,
-    nombre: document.getElementById('nombre').value,
-    cargo:  document.getElementById('cargo').value,
-    destino: destNombre,
-    fecha_ini: fechaIniStr,
-    fecha_fin: document.getElementById('fechaFin').value,
-    motivo: document.getElementById('motivo').value,
-    alimentos:   montos.alimentos||null,
-    gasolina:    montos.combustible||null,
-    combustible: montos.combustible||null,
-    peaje:       montos.peajes||null,
-    hospedaje:   montos.hospedaje||null,
-    transporte:  null,
-    total,
-    email_destinatario: p?.email||'',
-    auth1_nombre: p?.auth1_nombre||'MTRÔ. FELICIANO CASTRO MELÉNDREZ',
-    auth1_cargo:  p?.auth1_cargo||'SECRETARIO DE ECONOMÍA',
-    auth2_nombre: p?.auth2_nombre||'ING. XOCHITL FÉLIX CUADRAS',
-    auth2_cargo:  p?.auth2_cargo||'COORDINADORA ADMINISTRATIVA',
+    titulo:docType==='repos'?'SOLICITUD DE REPOSICIÓN DE VIÁTICOS':'SOLICITUD DE OFICIO DE COMISIÓN',
+    programa:progNombre,rfc:document.getElementById('rfc').value,nombre:document.getElementById('nombre').value,
+    cargo:document.getElementById('cargo').value,destino:destNombre,fecha_ini:fi,
+    fecha_fin:document.getElementById('fechaFin').value,motivo:document.getElementById('motivo').value,
+    alimentos:montos.alimentos||null,gasolina:montos.combustible||null,combustible:montos.combustible||null,
+    peaje:montos.peajes||null,hospedaje:montos.hospedaje||null,transporte:null,total,
+    email_destinatario:p?.email||'',
+    auth1_nombre:p?.auth1_nombre||'MTRÔ. FELICIANO CASTRO MELÉNDREZ',
+    auth1_cargo:p?.auth1_cargo||'SECRETARIO DE ECONOMÍA',
+    auth2_nombre:p?.auth2_nombre||'ING. XOCHITL FÉLIX CUADRAS',
+    auth2_cargo:p?.auth2_cargo||'COORDINADORA ADMINISTRATIVA',
   };
-
   const ep=docType==='repos'?`${SERVER}/generar/reposicion`:`${SERVER}/generar/solicitud`;
   try{
-    const resp=await fetch(ep,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const resp=await fetch(ep,{method:'POST',headers:authHeaders(),body:JSON.stringify(payload)});
     if(!resp.ok)throw new Error('Error '+resp.status);
     const data=await resp.json();
     if(data.error)throw new Error(data.error);
-
-    // Descargar Excel
     const bytes=Uint8Array.from(atob(data.xlsx_b64),c=>c.charCodeAt(0));
     const blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');a.href=url;a.download=data.filename;a.click();URL.revokeObjectURL(url);
-
-    // Status
-    const sc=document.getElementById('statusCard');
-    const st=document.getElementById('statusTitle');
-    const sd=document.getElementById('statusDetail');
-    let msg='';
-    if(data.email_ok){
-      sc.className='status-card status-ok';
-      st.textContent='✅ ¡Documento generado y enviado correctamente!';
-      sd.textContent=`Folio asignado: ${data.folio} · Fecha expedición: ${data.fecha_exp} · Correo enviado a ${p?.email}`;
-    } else {
-      sc.className='status-card status-ok';
-      st.textContent=`📥 Documento generado — Folio: ${data.folio}`;
-      sd.textContent=data.email_err
-        ?`El Excel fue descargado. El correo no pudo enviarse: ${data.email_err}`
-        :`El Excel fue descargado. No hay correo registrado para esta persona.`;
-    }
-    sc.style.display='block';
+    const sc=document.getElementById('statusCard'),st=document.getElementById('statusTitle'),sd=document.getElementById('statusDetail');
+    sc.className='status-card status-ok';sc.style.display='block';
+    st.textContent=`✅ Documento generado — Folio: ${data.folio}`;
+    sd.textContent=data.email_ok?`Enviado a ${p?.email} · Expedición: ${data.fecha_exp}`:`Descargado. ${data.email_err?'Correo no enviado: '+data.email_err:'Sin correo registrado.'}`;
   }catch(e){
     const sc=document.getElementById('statusCard');sc.className='status-card status-err';sc.style.display='block';
-    document.getElementById('statusTitle').textContent='❌ Error al generar el documento';
+    document.getElementById('statusTitle').textContent='❌ Error al generar';
     document.getElementById('statusDetail').textContent=e.message;
-  }finally{
-    btn.disabled=false;sp.style.display='none';bt.textContent='📊 Generar Excel y enviar por correo';
-  }
+  }finally{btn.disabled=false;sp.style.display='none';bt.textContent='📊 Generar Excel y enviar correo';}
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
-cargarDatos();
+
+// First time password setup
+let firstTimeEmail = '';
+async function doFirstTime(){
+  const p1 = document.getElementById('firstPass').value;
+  const p2 = document.getElementById('firstPassConfirm').value;
+  const errEl = document.getElementById('firstTimeError');
+  errEl.style.display='none';
+  if(p1.length < 6){errEl.textContent='Mínimo 6 caracteres';errEl.style.display='block';return;}
+  if(p1 !== p2){errEl.textContent='Las contraseñas no coinciden';errEl.style.display='block';return;}
+  showLoading('Creando contraseña...');
+  try{
+    const r = await fetch(`${SERVER}/api/set-password`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:firstTimeEmail,password:p1})});
+    const data = await r.json();
+    hideLoading();
+    if(data.ok){
+      authToken=data.token; currentRole=data.role; currentEmail=firstTimeEmail; currentNombre=data.nombre||firstTimeEmail;
+      localStorage.setItem('viaticos_token',authToken);
+      localStorage.setItem('viaticos_role',currentRole);
+      localStorage.setItem('viaticos_email',currentEmail);
+      localStorage.setItem('viaticos_nombre',currentNombre);
+      document.getElementById('firstTimeCard').style.display='none';
+      iniciarApp();
+    } else {
+      errEl.textContent=data.error||'Error';errEl.style.display='block';
+    }
+  }catch(e){hideLoading();document.getElementById('firstTimeError').textContent='Error de conexión';document.getElementById('firstTimeError').style.display='block';}
+}
+
+// Override doLogin to handle first_time
+const _originalDoLogin = doLogin;
+doLogin = async function(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const pass=document.getElementById('loginPass').value;
+  const errEl=document.getElementById('loginError');
+  errEl.style.display='none';
+  if(!email||!pass){errEl.textContent='Completa todos los campos';errEl.style.display='block';return;}
+  showLoading('Iniciando sesión...');
+  try{
+    const r=await fetch(`${SERVER}/api/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
+    const data=await r.json();
+    hideLoading();
+    if(data.ok){
+      authToken=data.token; currentRole=data.role; currentEmail=email; currentNombre=data.nombre||email;
+      localStorage.setItem('viaticos_token',authToken);
+      localStorage.setItem('viaticos_role',currentRole);
+      localStorage.setItem('viaticos_email',currentEmail);
+      localStorage.setItem('viaticos_nombre',currentNombre);
+      iniciarApp();
+    } else if(data.first_time){
+      // Show first-time card
+      firstTimeEmail = email;
+      document.getElementById('firstTimeCard').style.display='block';
+      document.getElementById('firstTimeCard').scrollIntoView({behavior:'smooth'});
+    } else {
+      errEl.textContent=data.error||'Error al iniciar sesión';errEl.style.display='block';
+    }
+  }catch(e){hideLoading();errEl.textContent='Error de conexión';errEl.style.display='block';}
+};
+
+// Para otra persona toggle
+let paraOtro = false;
+function toggleParaOtro(){
+  paraOtro = !paraOtro;
+  document.getElementById('toggle-para-otro').className='toggle'+(paraOtro?' on':'');
+  document.getElementById('solicitanteSection').style.display=paraOtro?'block':'none';
+  document.getElementById('labelComisionado').textContent=paraOtro?'Comisionado (para quien se solicita)':'Seleccionar persona';
+  if(paraOtro) poblarSelectSolicitante();
+}
+function poblarSelectSolicitante(){
+  const s=document.getElementById('selectSolicitante');
+  s.innerHTML='<option value="">— Seleccionar solicitante —</option>';
+  perfiles.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.nombre;s.appendChild(o);});
+}
+
+// Patch poblarSelects to also fill solicitante
+const _origPoblarSelects = poblarSelects;
+poblarSelects = function(){
+  _origPoblarSelects();
+  if(paraOtro) poblarSelectSolicitante();
+};
+
+// ── HISTORIAL ADMIN ───────────────────────────────────────────────────────────
+let historialAdmin = [];
+
+async function cargarHistorialAdmin(){
+  try{
+    const r=await fetch(`${SERVER}/api/data`,{headers:authHeaders()});
+    const data=await r.json();
+    historialAdmin=data.historial||[];
+  }catch(e){historialAdmin=[];}
+  renderHistorialAdmin();
+}
+
+function renderHistorialAdmin(){
+  const search=(document.getElementById('historialSearch')?.value||'').toLowerCase();
+  const el=document.getElementById('historialAdminList');
+  if(!el)return;
+  let lista=historialAdmin;
+  if(search) lista=lista.filter(r=>
+    (r.nombre||'').toLowerCase().includes(search)||
+    (r.folio||'').toLowerCase().includes(search)||
+    (r.destino||'').toLowerCase().includes(search)||
+    (r.programa||'').toLowerCase().includes(search)
+  );
+  if(!lista.length){
+    el.innerHTML='<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;">Sin solicitudes registradas</div>';
+    return;
+  }
+  // Sort newest first
+  const sorted=[...lista].sort((a,b)=>new Date(b.timestamp||0)-new Date(a.timestamp||0));
+  el.innerHTML=`<table class="historial-table">
+    <thead><tr>
+      <th>Folio</th><th>Fecha</th><th>Comisionado</th><th>Destino</th>
+      <th>Programa</th><th>Total</th><th>Tipo</th><th>Generado por</th><th></th>
+    </tr></thead>
+    <tbody>${sorted.map(r=>`<tr>
+      <td style="font-weight:700;white-space:nowrap;">${r.folio||'—'}</td>
+      <td style="white-space:nowrap;">${r.fecha_ini||r.fecha_exp||'—'}</td>
+      <td>${(r.nombre||'—').split(' ').slice(0,2).join(' ')}</td>
+      <td>${(r.destino||'—').substring(0,20)}${(r.destino||'').length>20?'...':''}</td>
+      <td>${(r.programa||'—').substring(0,18)}${(r.programa||'').length>18?'...':''}</td>
+      <td style="font-weight:700;white-space:nowrap;">$${parseFloat(r.total||0).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+      <td><span class="badge-tipo ${r.tipo==='Reposición'?'badge-repos':'badge-oficio'}">${r.tipo||'Oficio'}</span></td>
+      <td style="font-size:11px;color:var(--muted);">${(r.generado_por||'—').split('@')[0]}</td>
+      <td><button class="btn-del-row" onclick="eliminarSolicitud('${r.folio}')">🗑 Eliminar</button></td>
+    </tr>`).join('')}</tbody>
+  </table>
+  <div style="font-size:11px;color:var(--muted);margin-top:8px;text-align:right;">${sorted.length} solicitud(es) ${search?'encontradas':'totales'}</div>`;
+}
+
+async function eliminarSolicitud(folio){
+  if(!confirm(`¿Eliminar la solicitud ${folio}? Esta acción no se puede deshacer.`))return;
+  showLoading('Eliminando solicitud...');
+  try{
+    const r=await fetch(`${SERVER}/api/historial/delete`,{method:'POST',headers:authHeaders(),body:JSON.stringify({folio})});
+    const data=await r.json();
+    hideLoading();
+    if(data.ok){
+      historialAdmin=historialAdmin.filter(r=>r.folio!==folio);
+      historialCache=historialCache.filter(r=>r.folio!==folio);
+      renderHistorialAdmin();
+      renderStats();
+    } else {
+      alert('Error: '+data.error);
+    }
+  }catch(e){hideLoading();alert('Error de conexión');}
+}
+
+async function confirmarLimpiarHistorial(){
+  if(!confirm('⚠️ ¿Eliminar TODO el historial y reiniciar los folios?
+
+Esto borrará todas las solicitudes de prueba. No se puede deshacer.'))return;
+  if(!confirm('¿Estás seguro? Se eliminarán TODAS las solicitudes.'))return;
+  showLoading('Limpiando historial...');
+  try{
+    const r=await fetch(`${SERVER}/api/historial/clear`,{method:'POST',headers:authHeaders(),body:JSON.stringify({})});
+    const data=await r.json();
+    hideLoading();
+    if(data.ok){
+      historialAdmin=[];historialCache=[];
+      renderHistorialAdmin();renderStats();
+      alert('✅ Historial limpiado. Los folios se reiniciaron desde 0001.');
+    } else {
+      alert('Error: '+data.error);
+    }
+  }catch(e){hideLoading();alert('Error de conexión');}
+}
+
+// ── ESTADÍSTICAS ──────────────────────────────────────────────────────────────
+let historialCache = [];
+let filtroActual = 'todo';
+let charts = {};
+
+function setFiltro(f, btn){
+  filtroActual = f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderStats();
+}
+
+function filtrarHistorial(h){
+  const now = new Date();
+  return h.filter(r=>{
+    if(!r.timestamp) return true;
+    const d = new Date(r.timestamp);
+    if(filtroActual==='mes') return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+    if(filtroActual==='trimestre'){
+      const trim = Math.floor(now.getMonth()/3);
+      return Math.floor(d.getMonth()/3)===trim&&d.getFullYear()===now.getFullYear();
+    }
+    if(filtroActual==='año') return d.getFullYear()===now.getFullYear();
+    return true;
+  });
+}
+
+async function cargarStats(){
+  try{
+    const r=await fetch(`${SERVER}/api/data`,{headers:authHeaders()});
+    const data=await r.json();
+    historialCache=data.historial||[];
+  }catch(e){historialCache=[];}
+  renderStats();
+}
+
+function fmtMoney(n){
+  if(n>=1000000) return '$'+(n/1000000).toFixed(1)+'M';
+  if(n>=1000) return '$'+(n/1000).toFixed(1)+'K';
+  return '$'+n.toLocaleString('es-MX',{minimumFractionDigits:0,maximumFractionDigits:0});
+}
+
+function renderStats(){
+  const h = filtrarHistorial(historialCache);
+  if(!h.length){
+    ['statTotal','statSolicitudes','statPersonas','statPromedio'].forEach(id=>document.getElementById(id).textContent='0');
+    return;
+  }
+
+  const total = h.reduce((s,r)=>s+parseFloat(r.total||0),0);
+  const personas = new Set(h.map(r=>r.nombre)).size;
+  const promedio = total/h.length;
+
+  document.getElementById('statTotal').textContent=fmtMoney(total);
+  document.getElementById('statTotalSub').textContent=`$${total.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+  document.getElementById('statSolicitudes').textContent=h.length;
+  document.getElementById('statSolSub').textContent=h.filter(r=>r.email_ok).length+' enviados por correo';
+  document.getElementById('statPersonas').textContent=personas;
+  document.getElementById('statPersSub').textContent='personas únicas';
+  document.getElementById('statPromedio').textContent=fmtMoney(promedio);
+  document.getElementById('statPromSub').textContent='por solicitud';
+
+  renderTendencia(h);
+  renderRanking(h);
+  renderDestinos(h);
+  renderProgramas(h);
+  renderTipos(h);
+}
+
+function destroyChart(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+
+function renderTendencia(h){
+  destroyChart('tendencia');
+  const meses={};
+  h.forEach(r=>{
+    const d=new Date(r.timestamp||Date.now());
+    const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    if(!meses[key])meses[key]={count:0,total:0};
+    meses[key].count++;
+    meses[key].total+=parseFloat(r.total||0);
+  });
+  const keys=Object.keys(meses).sort().slice(-12);
+  const labels=keys.map(k=>{const[y,m]=k.split('-');return['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][parseInt(m)-1]+' '+y;});
+  const ctx=document.getElementById('chartTendencia').getContext('2d');
+  charts['tendencia']=new Chart(ctx,{type:'bar',data:{labels,datasets:[
+    {label:'Monto ($)',data:keys.map(k=>meses[k].total),backgroundColor:'rgba(15,37,67,0.8)',borderRadius:6,yAxisID:'y'},
+    {label:'Solicitudes',data:keys.map(k=>meses[k].count),type:'line',borderColor:'#c8a84b',backgroundColor:'rgba(200,168,75,0.1)',borderWidth:2,pointBackgroundColor:'#c8a84b',fill:true,yAxisID:'y1'}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{font:{size:11}}}},scales:{y:{type:'linear',display:true,position:'left',ticks:{callback:v=>fmtMoney(v),font:{size:10}},grid:{color:'rgba(0,0,0,0.05)'}},y1:{type:'linear',display:true,position:'right',grid:{drawOnChartArea:false},ticks:{font:{size:10}}}}}});
+}
+
+function renderRanking(h){
+  const personas={};
+  h.forEach(r=>{
+    const n=r.nombre||'Sin nombre';
+    if(!personas[n])personas[n]={total:0,count:0};
+    personas[n].total+=parseFloat(r.total||0);
+    personas[n].count++;
+  });
+  const sorted=Object.entries(personas).sort((a,b)=>b[1].total-a[1].total).slice(0,7);
+  const colors=['gold','silver','bronze','','','',''];
+  document.getElementById('rankingPersonas').innerHTML=sorted.map(([nombre,data],i)=>`
+    <div class="ranking-item">
+      <div class="ranking-pos ${colors[i]||''}">${i+1}</div>
+      <div class="ranking-info">
+        <div class="ranking-name">${nombre.split(' ').slice(0,2).join(' ')}</div>
+        <div class="ranking-detail">${data.count} solicitud(es)</div>
+      </div>
+      <div class="ranking-amount">${fmtMoney(data.total)}</div>
+    </div>`).join('');
+}
+
+function renderDestinos(h){
+  destroyChart('destinos');
+  const dest={};
+  h.forEach(r=>{const d=(r.destino||'Otro').split(',')[0].trim();dest[d]=(dest[d]||0)+1;});
+  const sorted=Object.entries(dest).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const ctx=document.getElementById('chartDestinos').getContext('2d');
+  const colors=['#0f2543','#1a4a8a','#c8a84b','#1a7a5e','#2460b8','#d4a843','#0d4f3c','#3a7bd5'];
+  charts['destinos']=new Chart(ctx,{type:'bar',data:{labels:sorted.map(([k])=>k),datasets:[{data:sorted.map(([,v])=>v),backgroundColor:colors,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:10},maxRotation:30}},y:{ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,0.05)'},beginAtZero:true}}}});
+}
+
+function renderProgramas(h){
+  destroyChart('programas');
+  const progs={};
+  h.forEach(r=>{const p=r.programa||'Sin programa';progs[p]=(progs[p]||0)+parseFloat(r.total||0);});
+  const sorted=Object.entries(progs).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const ctx=document.getElementById('chartProgramas').getContext('2d');
+  const colors=['#0f2543','#c8a84b','#1a4a8a','#1a7a5e','#9ba8b5','#d4a843'];
+  charts['programas']=new Chart(ctx,{type:'doughnut',data:{labels:sorted.map(([k])=>k.substring(0,20)),datasets:[{data:sorted.map(([,v])=>v),backgroundColor:colors,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:10},boxWidth:12}}}}});
+}
+
+function renderTipos(h){
+  destroyChart('tipos');
+  const oficio=h.filter(r=>r.tipo==='Oficio').length;
+  const repos=h.filter(r=>r.tipo==='Reposición').length;
+  const ctx=document.getElementById('chartTipos').getContext('2d');
+  charts['tipos']=new Chart(ctx,{type:'doughnut',data:{labels:['Oficio de Comisión','Reposición'],datasets:[{data:[oficio,repos],backgroundColor:['#0f2543','#c8a84b'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:14}}}}});
+}
+
+// Load stats when tab opens
+const _origShowTab = showTab;
+showTab = function(t){
+  _origShowTab(t);
+  if(t==='stats') cargarStats();
+  if(t==='admin') cargarHistorialAdmin();
+};
+
+if(authToken){iniciarApp();}
+else{document.getElementById('loginScreen').style.display='flex';}
 </script>
 </body>
 </html>
