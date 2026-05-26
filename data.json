@@ -1,0 +1,19 @@
+{
+  "perfiles": [
+    {
+      "id": "p_1779770918503",
+      "nombre": "OSCAR ABRAHAM NAVARRO LOPEZ",
+      "rfc": "NALO941030",
+      "email": "abraham.navarro@sinaloa.gob.mx",
+      "cargo": "DIRECTOR DE GESTIÓN DE FONDOS",
+      "rango": "director",
+      "area": "SUBSECRETARIA DE GESTIÓN DE FONDOS Y FINANCIAMIENTO",
+      "auth1_nombre": "ING. JOSÉ ÁNGEL LÓPEZ FIERRO",
+      "auth1_cargo": "SUBSECRETARIO DE GESTIÓN DE FONDOS Y FINANCIAMIENTO",
+      "auth2_nombre": "ING. XÓCHITL FÉLIX CUADRAS",
+      "auth2_cargo": "COORDINADORA ADMINISTRATIVA"
+    }
+  ],
+  "programas": [],
+  "folios": {}
+}
