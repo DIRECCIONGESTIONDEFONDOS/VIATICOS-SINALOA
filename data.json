@@ -25,6 +25,19 @@
       "auth1_cargo": "6331",
       "auth2_nombre": "63",
       "auth2_cargo": "31"
+    },
+    {
+      "id": "p_1779833320605",
+      "nombre": "ESTEBAN ALONSO LOPEZ FELIX",
+      "rfc": "LOFE0010277W2",
+      "email": "lofe001027@gmail.com",
+      "cargo": "ASISTENTE",
+      "rango": "jefe",
+      "area": "SUBSECRETARIA DE GESTION DE FONDOS Y FINANCIAMIENTO",
+      "auth1_nombre": "ING. JOSE ANGEL LOPEZ FIERRO",
+      "auth1_cargo": "SUBSECRETARIO DE GESTION DE FONDOS Y FINANCIAMIENTO",
+      "auth2_nombre": "ING. XOCHITL FELIX CUADRAS",
+      "auth2_cargo": "COORDINADORA ADMINISTRATIVA"
     }
   ],
   "programas": [
