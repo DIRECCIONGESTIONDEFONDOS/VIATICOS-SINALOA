@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema de Viáticos 2025 · SE Sinaloa</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--navy:#0f2543;--blue:#1a4a8a;--accent:#c8a84b;--light:#f4f6fa;--white:#fff;--border:#dde2ec;--text:#1a2640;--muted:#7a8499;--danger:#c0392b;--green:#1a7a5e;}
+body{font-family:'DM Sans',sans-serif;background:var(--light);color:var(--text);}
+.tab-bar{background:var(--navy);display:flex;padding:0 20px;overflow-x:auto;}
+.tab{padding:13px 18px;font-size:12px;font-weight:600;letter-spacing:.04em;color:rgba(255,255,255,.45);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:all .2s;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-header{background:var(--navy);padding:16px 20px 0;}
+.header-brand{color:var(--accent);font-family:'Playfair Display',serif;font-size:20px;}
+.header-sub{color:rgba(255,255,255,.45);font-size:11px;margin-top:2px;}
+.panel{display:none;padding:20px 16px 60px;max-width:980px;margin:0 auto;}
+.panel.active{display:block;}
+.card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;}
+.card-title{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.card-title::before{content:'';width:14px;height:2px;background:var(--accent);display:inline-block;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.form-group{display:flex;flex-direction:column;gap:4px;}
+.form-group.full{grid-column:1/-1;}
+label{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;}
+select,input,textarea{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--text);background:var(--light);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;outline:none;transition:border-color .2s;width:100%;}
+select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237a8499' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;background-color:var(--light);padding-right:32px;cursor:pointer;}
+select:focus,input:focus,textarea:focus{border-color:var(--blue);background:var(--white);}
+select:disabled{opacity:.4;cursor:not-allowed;}
+textarea{resize:vertical;min-height:56px;}
+input[type="date"]{cursor:pointer;}
+input[readonly]{background:#f8f9fb;color:var(--muted);cursor:not-allowed;}
+
+/* PERSONA */
+.persona-selector{display:flex;gap:8px;align-items:flex-end;}
+.btn-add{white-space:nowrap;background:var(--navy);color:white;border:none;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:9px 14px;border-radius:8px;cursor:pointer;flex-shrink:0;}
+.perfil-badge{display:flex;align-items:center;gap:12px;background:#f0f5ff;border:1px solid #c8d8f0;border-radius:10px;padding:11px 14px;margin-top:10px;}
+.perfil-avatar{width:38px;height:38px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--accent);flex-shrink:0;}
+.perfil-info{flex:1;min-width:0;}
+.perfil-name{font-size:13px;font-weight:700;}
+.perfil-detail{font-size:11px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.email-chip{display:inline-flex;align-items:center;gap:4px;background:#e8f4fd;border:1px solid #b8d9f5;border-radius:20px;padding:2px 8px;font-size:11px;font-weight:600;color:#1a4a8a;margin-top:4px;}
+.btn-sm-act{background:none;border:1px solid var(--border);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;flex-shrink:0;}
+
+/* TOGGLES */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--light);border-radius:8px;border:1.5px solid var(--border);cursor:pointer;margin-bottom:8px;transition:border-color .2s;}
+.toggle-row:last-child{margin-bottom:0;}
+.toggle-label{font-size:13px;font-weight:500;}
+.toggle-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+.toggle{width:36px;height:19px;background:var(--border);border-radius:10px;position:relative;transition:background .2s;flex-shrink:0;}
+.toggle.on{background:var(--navy);}
+.toggle::after{content:'';position:absolute;width:13px;height:13px;background:white;border-radius:50%;top:3px;left:3px;transition:transform .2s;}
+.toggle.on::after{transform:translateX(17px);}
+
+/* LAYOUT */
+.main-layout{display:grid;grid-template-columns:1fr 290px;gap:16px;align-items:start;}
+.result-panel{background:var(--navy);border-radius:12px;padding:20px;color:var(--white);position:sticky;top:16px;}
+.result-empty{text-align:center;padding:24px 0;color:rgba(255,255,255,.3);font-size:13px;}
+.result-empty-icon{font-size:26px;margin-bottom:8px;}
+.result-tag{display:inline-block;background:rgba(200,168,75,.15);color:var(--accent);font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:4px;margin-bottom:12px;}
+.result-title{font-family:'Playfair Display',serif;font-size:17px;color:var(--accent);margin-bottom:2px;}
+.result-meta{font-size:11px;color:rgba(255,255,255,.4);margin-bottom:16px;}
+.result-row{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.07);}
+.result-row:last-child{border-bottom:none;}
+.result-row-label{font-size:12px;color:rgba(255,255,255,.7);}
+.result-row-detail{font-size:10px;color:rgba(255,255,255,.3);margin-top:1px;}
+.result-row-amount{font-size:13px;font-weight:600;color:var(--white);}
+.result-divider{border:none;border-top:1px solid rgba(200,168,75,.3);margin:10px 0 8px;}
+.result-total{display:flex;justify-content:space-between;align-items:baseline;margin-top:2px;}
+.result-total-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);}
+.result-total-amount{font-family:'Playfair Display',serif;font-size:26px;color:var(--accent);}
+.btn-gen{width:100%;margin-top:12px;background:var(--accent);border:none;color:var(--navy);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;padding:11px;border-radius:8px;cursor:pointer;}
+.btn-gen:disabled{opacity:.35;cursor:not-allowed;}
+.btn-reset{width:100%;margin-top:6px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.45);font-family:'DM Sans',sans-serif;font-size:11px;padding:8px;border-radius:8px;cursor:pointer;}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;padding:16px;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--white);border-radius:16px;padding:24px;width:100%;max-width:520px;box-shadow:0 20px 60px rgba(0,0,0,.2);max-height:90vh;overflow-y:auto;}
+.modal-title{font-family:'Playfair Display',serif;font-size:19px;color:var(--navy);margin-bottom:3px;}
+.modal-sub{font-size:12px;color:var(--muted);margin-bottom:18px;}
+.modal-section{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:16px 0 10px;padding-bottom:4px;border-bottom:1px solid var(--border);}
+.modal-actions{display:flex;gap:8px;margin-top:18px;justify-content:flex-end;}
+.btn-primary{background:var(--navy);color:white;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:10px 22px;border-radius:8px;cursor:pointer;}
+.btn-secondary{background:var(--white);color:var(--text);border:1.5px solid var(--border);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:10px 18px;border-radius:8px;cursor:pointer;}
+.btn-danger{background:#fdf0ef;color:var(--danger);border:1.5px solid #f5c6c2;font-family:'DM Sans',sans-serif;font-size:11px;padding:7px 12px;border-radius:8px;cursor:pointer;margin-right:auto;}
+
+/* PERFILES GRID */
+.perfiles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;}
+.perfil-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.perfil-card-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.perfil-card-avatar{width:42px;height:42px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--accent);flex-shrink:0;}
+.perfil-card-name{font-size:13px;font-weight:700;line-height:1.2;}
+.perfil-card-rango{font-size:11px;color:var(--muted);margin-top:2px;}
+.perfil-card-details{font-size:11px;color:var(--muted);display:flex;flex-direction:column;gap:3px;margin-bottom:10px;}
+.perfil-card-actions{display:flex;gap:6px;}
+.btn-sm{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;padding:5px 10px;border-radius:6px;cursor:pointer;}
+.btn-sm-edit{background:var(--light);border:1px solid var(--border);color:var(--text);}
+.btn-sm-del{background:#fdf0ef;border:1px solid #f5c6c2;color:var(--danger);}
+.empty-state{text-align:center;padding:40px 20px;color:var(--muted);grid-column:1/-1;}
+.empty-state .icon{font-size:36px;margin-bottom:10px;}
+
+/* PROGRAMAS TAB */
+.programa-item{display:flex;align-items:start;gap:10px;padding:12px 16px;background:var(--white);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;}
+.programa-item-info{flex:1;}
+.programa-item-name{font-size:13px;font-weight:700;}
+.programa-item-motivos{font-size:11px;color:var(--muted);margin-top:4px;}
+.motivo-tag{display:inline-block;background:var(--light);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px;margin:2px;}
+
+/* DOC TAB */
+.doc-type-selector{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.doc-type-btn{padding:14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;text-align:center;transition:all .2s;background:var(--white);}
+.doc-type-btn.selected{border-color:var(--navy);background:#f0f5ff;}
+.doc-icon{font-size:22px;margin-bottom:5px;}
+.doc-name{font-size:12px;font-weight:700;}
+.doc-desc{font-size:11px;color:var(--muted);margin-top:2px;}
+.summary-box{background:#f0f5ff;border:1px solid #c8d8f0;border-radius:8px;padding:13px 15px;margin-bottom:14px;}
+.s-row{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;}
+.s-row span:first-child{color:var(--muted);}
+.s-row span:last-child{font-weight:600;}
+.s-total{display:flex;justify-content:space-between;font-size:15px;font-weight:700;color:var(--navy);border-top:1px solid #c8d8f0;margin-top:8px;padding-top:8px;}
+.btn-excel{background:linear-gradient(135deg,#1a7a5e,#1d9e79);color:white;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;padding:13px 20px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:8px;width:100%;justify-content:center;box-shadow:0 4px 12px rgba(26,122,94,.25);}
+.btn-excel:disabled{opacity:.4;cursor:not-allowed;}
+.spinner{display:none;width:15px;height:15px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.status-card{border-radius:10px;padding:13px 15px;margin-top:10px;display:none;}
+.status-ok{background:#d4edda;border:1px solid #c3e6cb;}
+.status-err{background:#f8d7da;border:1px solid #f5c6c2;}
+.status-title{font-size:13px;font-weight:700;margin-bottom:3px;}
+.status-ok .status-title{color:#155724;}
+.status-err .status-title{color:#721c24;}
+.status-detail{font-size:12px;line-height:1.5;}
+.status-ok .status-detail{color:#1e6b38;}
+.status-err .status-detail{color:#721c24;}
+
+/* LOADING */
+.loading-overlay{display:none;position:fixed;inset:0;background:rgba(15,37,67,.7);z-index:2000;align-items:center;justify-content:center;flex-direction:column;gap:16px;}
+.loading-overlay.show{display:flex;}
+.loading-spinner{width:48px;height:48px;border:4px solid rgba(200,168,75,.3);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
+.loading-text{color:var(--accent);font-size:14px;font-weight:600;}
+
+/* FOLIO BADGE */
+.folio-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(200,168,75,.15);border:1px solid rgba(200,168,75,.3);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:700;color:var(--accent);margin-top:8px;}
+
+@media(max-width:720px){
+  .main-layout,.doc-type-selector{grid-template-columns:1fr;}
+  .form-grid,.form-grid-3{grid-template-columns:1fr;}
+  .result-panel{position:static;}
+  .perfiles-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text" id="loadingText">Cargando datos...</div>
+</div>
+
+<div class="tab-header">
+  <div style="display:flex;align-items:center;justify-content:space-between;">
+    <div><div class="header-brand">Sistema de Viáticos</div>
+    <div class="header-sub">Secretaría de Economía · Sinaloa · 2025</div></div>
+  </div>
+</div>
+<div class="tab-bar">
+  <div class="tab active"  onclick="showTab('calc')">📐 Calculadora</div>
+  <div class="tab"         onclick="showTab('doc')">📄 Generar Documento</div>
+  <div class="tab"         onclick="showTab('perfiles')">👥 Perfiles</div>
+  <div class="tab"         onclick="showTab('programas')">📋 Programas</div>
+</div>
+
+<!-- ════════════════════════════ CALCULADORA ════════════════════════════ -->
+<div class="panel active" id="panel-calc">
+  <div class="main-layout">
+    <div>
+
+      <!-- COMISIONADO -->
+      <div class="card">
+        <div class="card-title">Comisionado</div>
+        <div class="persona-selector">
+          <div style="flex:1">
+            <label style="display:block;margin-bottom:4px;">Seleccionar persona registrada</label>
+            <select id="selectPersona" onchange="cargarPerfil()"><option value="">— Seleccionar —</option></select>
+          </div>
+          <button class="btn-add" onclick="abrirModalPerfil(null)">+ Nuevo</button>
+        </div>
+        <div id="perfilBadge" style="display:none" class="perfil-badge">
+          <div class="perfil-avatar" id="badgeAvatar">?</div>
+          <div class="perfil-info">
+            <div class="perfil-name" id="badgeName">—</div>
+            <div class="perfil-detail" id="badgeDetail">—</div>
+            <div class="email-chip" id="badgeEmail" style="display:none">✉️ <span id="badgeEmailTxt"></span></div>
+          </div>
+          <button class="btn-sm-act" onclick="editarActual()">✏ Editar</button>
+        </div>
+        <div id="camposPersona" style="margin-top:12px;">
+          <div class="form-grid">
+            <div class="form-group"><label>Nombre completo</label>
+              <input type="text" id="nombre" placeholder="Ej. JUAN PÉREZ LÓPEZ" oninput="calcular()"/></div>
+            <div class="form-group"><label>RFC</label>
+              <input type="text" id="rfc" placeholder="Ej. PELJ801230AB1"/></div>
+            <div class="form-group"><label>Cargo</label>
+              <input type="text" id="cargo" placeholder="Ej. Director de Gestión de Fondos"/></div>
+            <div class="form-group"><label>Rango / Puesto</label>
+              <select id="rango" onchange="calcular()">
+                <option value="">— Seleccionar —</option>
+                <option value="secretario">Secretario / Subsecretario</option>
+                <option value="director">Director</option>
+                <option value="jefe">Jefe de Dpto. / Resto de Personal</option>
+              </select></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DESTINO -->
+      <div class="card">
+        <div class="card-title">Destino y duración</div>
+        <div class="form-grid">
+          <div class="form-group"><label>Tipo de viaje</label>
+            <select id="tipoViaje" onchange="onTipoChange()">
+              <option value="">— Seleccionar —</option>
+              <option value="sinaloa">Dentro de Sinaloa</option>
+              <option value="especial">Los Mochis / Mazatlán</option>
+              <option value="nacional">Fuera del Estado</option>
+            </select></div>
+          <div class="form-group"><label>Destino del tabulador</label>
+            <select id="destino" onchange="onDestinoChange()" disabled><option value="">— Primero elige el tipo —</option></select></div>
+          <div class="form-group full"><label>Destino (editable / agrega más si aplica)</label>
+            <input type="text" id="destinoCustom" placeholder="Se prellena al seleccionar arriba" oninput="calcular()"/></div>
+          <div class="form-group"><label>Días completos</label>
+            <input type="number" id="dias" min="1" value="1" oninput="calcular(); actualizarFechas()"/></div>
+          <div class="form-group"><label>Noches de hospedaje</label>
+            <input type="number" id="noches" min="0" value="0" oninput="calcular()"/></div>
+        </div>
+      </div>
+
+      <!-- CONCEPTOS -->
+      <div class="card">
+        <div class="card-title">Conceptos</div>
+        <div class="toggle-row" onclick="toggleC('alimentos')">
+          <div><div class="toggle-label">🍽 Alimentos</div><div class="toggle-sub">Tarifa diaria según destino y rango</div></div>
+          <div class="toggle on" id="toggle-alimentos"></div></div>
+        <div class="toggle-row" onclick="toggleC('hospedaje')">
+          <div><div class="toggle-label">🏨 Hospedaje</div><div class="toggle-sub">Tarifa por noche según rango</div></div>
+          <div class="toggle" id="toggle-hospedaje"></div></div>
+        <div class="toggle-row" onclick="toggleC('taxis')">
+          <div><div class="toggle-label">🚕 Taxis / Transporte local</div><div class="toggle-sub">$500 diarios</div></div>
+          <div class="toggle" id="toggle-taxis"></div></div>
+        <div class="toggle-row" onclick="toggleC('combustible')">
+          <div><div class="toggle-label">⛽ Combustible (vehículo oficial)</div><div class="toggle-sub">Tarifa por ruta ida y vuelta</div></div>
+          <div class="toggle" id="toggle-combustible"></div></div>
+        <div id="grupCil" style="display:none;margin-top:12px;"><div class="form-group" style="max-width:170px;"><label>Cilindros del vehículo</label>
+          <select id="cilindros" onchange="calcular()">
+            <option value="4">4 cilindros</option><option value="6">6 cilindros</option><option value="8">8 cilindros</option>
+          </select></div></div>
+      </div>
+
+      <!-- COMISIÓN -->
+      <div class="card">
+        <div class="card-title">Datos de la comisión</div>
+        <div class="form-grid">
+          <div class="form-group"><label>Programa</label>
+            <select id="programaSelect" onchange="onProgramaSelect()">
+              <option value="">— Seleccionar programa —</option>
+            </select></div>
+          <div class="form-group"><label>Motivo de la comisión</label>
+            <select id="motivoSelect" onchange="onMotivoSelect()">
+              <option value="">— Seleccionar motivo —</option>
+            </select></div>
+          <div class="form-group full"><label>Motivo personalizado</label>
+            <textarea id="motivo" placeholder="O escribe un motivo específico aquí..."></textarea></div>
+          <div class="form-group"><label>📅 Fecha inicial (selecciona)</label>
+            <input type="date" id="fechaIniPicker" onchange="actualizarFechas()"/></div>
+          <div class="form-group"><label>Fecha de expedición (automática)</label>
+            <input type="text" id="fechaExp" readonly placeholder="3 días hábiles antes"/></div>
+          <div class="form-group"><label>Fecha final (automática)</label>
+            <input type="text" id="fechaFin" readonly placeholder="Según días de comisión"/></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULTADO -->
+    <div class="result-panel">
+      <div class="result-empty" id="resultEmpty"><div class="result-empty-icon">📋</div>Selecciona persona y destino</div>
+      <div id="resultContent" style="display:none">
+        <div class="result-tag" id="resultTag">CÁLCULO</div>
+        <div class="result-title" id="resultDestino">—</div>
+        <div class="result-meta" id="resultMeta">—</div>
+        <div id="resultRows"></div>
+        <hr class="result-divider">
+        <div class="result-total">
+          <div class="result-total-label">Total</div>
+          <div class="result-total-amount" id="resultTotal">—</div>
+        </div>
+        <button class="btn-gen" id="btnGenDoc" onclick="showTab('doc')" disabled>📄 Generar documento →</button>
+        <button class="btn-reset" onclick="resetCalc()">↺ Nueva solicitud</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════ GENERAR DOC ════════════════════════════ -->
+<div class="panel" id="panel-doc">
+  <div class="card">
+    <div class="card-title">Tipo de documento</div>
+    <div class="doc-type-selector">
+      <div class="doc-type-btn selected" id="dtyp-oficio" onclick="selDoc('oficio')">
+        <div class="doc-icon">📋</div><div class="doc-name">Solicitud de Oficio de Comisión</div><div class="doc-desc">Primera solicitud</div></div>
+      <div class="doc-type-btn" id="dtyp-repos" onclick="selDoc('repos')">
+        <div class="doc-icon">🔄</div><div class="doc-name">Solicitud de Reposición</div><div class="doc-desc">Reposición de viáticos</div></div>
+    </div>
+  </div>
+  <div class="card" id="docSummary" style="display:none">
+    <div class="card-title">Resumen</div>
+    <div class="summary-box" id="summaryBox"></div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px;" id="emailInfo"></div>
+    <button class="btn-excel" id="btnExcel" onclick="generarYEnviar()">
+      <span id="excelSpinner" class="spinner"></span>
+      <span id="excelBtnText">📊 Generar Excel y enviar por correo</span>
+    </button>
+    <div style="margin-top:8px;">
+      <button class="btn-secondary" style="width:100%;text-align:center;font-size:12px;" onclick="showTab('calc')">← Regresar</button>
+    </div>
+    <div class="status-card" id="statusCard">
+      <div class="status-title" id="statusTitle"></div>
+      <div class="status-detail" id="statusDetail"></div>
+    </div>
+  </div>
+  <div class="card" id="docNoCalc">
+    <div style="text-align:center;padding:20px;color:var(--muted);">
+      <div style="font-size:30px;margin-bottom:8px;">📐</div>
+      <p style="font-size:14px;">Primero completa el cálculo en <strong>Calculadora</strong></p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════ PERFILES ════════════════════════════ -->
+<div class="panel" id="panel-perfiles">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+    <div><div style="font-family:'Playfair Display',serif;font-size:19px;color:var(--navy);">Perfiles del equipo</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:2px;">Se guardan en GitHub — disponibles para todo el equipo</div></div>
+    <button class="btn-primary" onclick="abrirModalPerfil(null)">+ Agregar</button>
+  </div>
+  <div class="perfiles-grid" id="perfilesGrid"></div>
+</div>
+
+<!-- ════════════════════════════ PROGRAMAS ════════════════════════════ -->
+<div class="panel" id="panel-programas">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+    <div><div style="font-family:'Playfair Display',serif;font-size:19px;color:var(--navy);">Programas y Motivos</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:2px;">Registra los programas y sus motivos frecuentes</div></div>
+    <button class="btn-primary" onclick="abrirModalPrograma(null)">+ Agregar programa</button>
+  </div>
+  <div id="programasList"></div>
+</div>
+
+<!-- ════════ MODAL PERFIL ════════ -->
+<div class="modal-overlay" id="modalPerfil">
+  <div class="modal">
+    <div class="modal-title" id="mPTitle">Nuevo perfil</div>
+    <div class="modal-sub">Datos personales y laborales del comisionado</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="modal-section">Datos personales</div>
+      <div class="form-grid">
+        <div class="form-group full"><label>Nombre completo *</label>
+          <input type="text" id="mNombre" placeholder="Ej. JUAN PÉREZ LÓPEZ"/></div>
+        <div class="form-group"><label>RFC *</label>
+          <input type="text" id="mRfc" placeholder="Ej. PELJ801230AB1" style="text-transform:uppercase"/></div>
+        <div class="form-group"><label>Correo electrónico *</label>
+          <input type="email" id="mEmail" placeholder="correo@ejemplo.com"/></div>
+      </div>
+      <div class="modal-section">Datos laborales</div>
+      <div class="form-grid">
+        <div class="form-group"><label>Cargo *</label>
+          <input type="text" id="mCargo" placeholder="Ej. Director de Gestión de Fondos"/></div>
+        <div class="form-group"><label>Rango *</label>
+          <select id="mRango"><option value="">— Seleccionar —</option>
+            <option value="secretario">Secretario / Subsecretario</option>
+            <option value="director">Director</option>
+            <option value="jefe">Jefe de Dpto. / Resto de Personal</option></select></div>
+        <div class="form-group full"><label>Área</label>
+          <input type="text" id="mArea" placeholder="Ej. Subsecretaría de Gestión de Fondos"/></div>
+      </div>
+      <div class="modal-section">Autorizantes (específicos de esta persona)</div>
+      <div class="form-grid">
+        <div class="form-group"><label>Nombre — Autorizó 1</label>
+          <input type="text" id="mAuth1n" placeholder="MTRO. FELICIANO CASTRO MELÉNDREZ"/></div>
+        <div class="form-group"><label>Cargo — Autorizó 1</label>
+          <input type="text" id="mAuth1c" placeholder="SECRETARIO DE ECONOMÍA"/></div>
+        <div class="form-group"><label>Nombre — Autorizó 2</label>
+          <input type="text" id="mAuth2n" placeholder="ING. XOCHITL FÉLIX CUADRAS"/></div>
+        <div class="form-group"><label>Cargo — Autorizó 2</label>
+          <input type="text" id="mAuth2c" placeholder="COORDINADORA ADMINISTRATIVA"/></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-danger" id="btnElimPerfil" onclick="eliminarPerfilModal()" style="display:none">🗑 Eliminar</button>
+      <button class="btn-secondary" onclick="cerrarModalPerfil()">Cancelar</button>
+      <button class="btn-primary" onclick="guardarPerfil()">Guardar perfil</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ MODAL PROGRAMA ════════ -->
+<div class="modal-overlay" id="modalPrograma">
+  <div class="modal">
+    <div class="modal-title" id="mProgTitle">Nuevo programa</div>
+    <div class="modal-sub">Agrega el programa y sus motivos frecuentes</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="form-group"><label>Nombre del programa *</label>
+        <input type="text" id="mProgNombre" placeholder="Ej. EQUIPA SINALOA"/></div>
+      <div class="form-group"><label>Motivos frecuentes (uno por línea)</label>
+        <textarea id="mProgMotivos" style="min-height:100px;"
+          placeholder="Ej:&#10;Entrega de equipamiento productivo a beneficiarios en el municipio de Navolato&#10;Supervisión de beneficiarios del programa en Los Mochis&#10;Reunión de seguimiento con beneficiarios"></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-danger" id="btnElimProg" onclick="eliminarProgModal()" style="display:none">🗑 Eliminar</button>
+      <button class="btn-secondary" onclick="cerrarModalPrograma()">Cancelar</button>
+      <button class="btn-primary" onclick="guardarPrograma()">Guardar programa</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SERVER = window.location.origin;
+const RANGOS = {
+  secretario:{label:'Secretario / Subsecretario',al_sin:760,al_esp:760,taxis:500,hosp:2090},
+  director:  {label:'Director',al_sin:450,al_esp:605,taxis:500,hosp:1670},
+  jefe:      {label:'Jefe de Dpto. / Resto de Personal',al_sin:200,al_esp:375,taxis:500,hosp:965}
+};
+const D_SIN=[
+  {id:'mocorito',n:'Mocorito',c4:650,c6:850,c8:1000,p:52},
+  {id:'badiraguato',n:'Badiraguato',c4:450,c6:650,c8:750,p:52},
+  {id:'guamuchil',n:'Guamúchil',c4:600,c6:700,c8:850,p:424},
+  {id:'navolato',n:'Navolato',c4:200,c6:250,c8:300,p:0},
+  {id:'angostura',n:'Angostura',c4:600,c6:800,c8:950,p:440},
+  {id:'guasave',n:'Guasave',c4:700,c6:1000,c8:1200,p:440},
+  {id:'sinaloa',n:'Sinaloa de Leyva',c4:900,c6:1200,c8:1400,p:440},
+  {id:'sanignacio',n:'San Ignacio',c4:1000,c6:1350,c8:1500,p:410},
+  {id:'cosala',n:'Cosalá',c4:900,c6:1150,c8:1300,p:0},
+  {id:'lacruz',n:'La Cruz / Elota',c4:700,c6:900,c8:1300,p:436},
+  {id:'eldorado',n:'El Dorado',c4:0,c6:0,c8:500,p:0}
+];
+const D_ESP=[
+  {id:'losmochis',n:'Los Mochis',c4:1000,c6:1400,c8:1600,p:440},
+  {id:'elfuerte',n:'El Fuerte',c4:1300,c6:1800,c8:2000,p:440},
+  {id:'choix',n:'Choix',c4:1700,c6:2200,c8:2500,p:440},
+  {id:'mazatlan',n:'Mazatlán',c4:1100,c6:1500,c8:1700,p:818},
+  {id:'concordia',n:'Concordia',c4:1500,c6:2000,c8:2200,p:818},
+  {id:'elrosario',n:'El Rosario',c4:1500,c6:2000,c8:2200,p:960},
+  {id:'escuinapa',n:'Escuinapa',c4:1600,c6:2200,c8:2400,p:1420}
+];
+const D_NAC=[{id:'cdmx',n:'Ciudad de México'},{id:'gdl',n:'Guadalajara'},{id:'mty',n:'Monterrey'},{id:'hmo',n:'Hermosillo'},{id:'otro',n:'Otro destino nacional'}];
+const FESTIVOS=[[1,1],[2,5],[3,21],[9,16],[11,2],[11,20],[12,25]];
+
+let conceptos={alimentos:true,hospedaje:false,taxis:false,combustible:false};
+let docType='oficio', ultimoCalculo=null;
+let perfiles=[], programas=[], editPerfilId=null, editProgId=null, perfilActualId=null;
+
+// ── LOADING ──────────────────────────────────────────────────────────────────
+function showLoading(txt='Procesando...'){
+  document.getElementById('loadingText').textContent=txt;
+  document.getElementById('loadingOverlay').classList.add('show');
+}
+function hideLoading(){document.getElementById('loadingOverlay').classList.remove('show');}
+
+// ── FECHA UTILS ───────────────────────────────────────────────────────────────
+function esHabil(d){
+  if(d.getDay()===0||d.getDay()===6)return false;
+  return !FESTIVOS.some(([m,dia])=>d.getMonth()+1===m&&d.getDate()===dia);
+}
+function restarHabiles(fecha,n){
+  let d=new Date(fecha);
+  while(n>0){d.setDate(d.getDate()-1);if(esHabil(d))n--;}
+  return d;
+}
+function fmtDate(d){
+  const dd=String(d.getDate()).padStart(2,'0');
+  const mm=String(d.getMonth()+1).padStart(2,'0');
+  return `${dd}/${mm}/${d.getFullYear()}`;
+}
+
+function actualizarFechas(){
+  const pickerVal=document.getElementById('fechaIniPicker').value;
+  const dias=Math.max(1,parseInt(document.getElementById('dias').value)||1);
+  if(!pickerVal)return;
+  const [y,m,d]=pickerVal.split('-').map(Number);
+  const fechaIni=new Date(y,m-1,d);
+  const fechaFin=new Date(fechaIni);
+  fechaFin.setDate(fechaFin.getDate()+(dias-1));
+  const fechaExp=restarHabiles(fechaIni,3);
+  document.getElementById('fechaExp').value=fmtDate(fechaExp);
+  document.getElementById('fechaFin').value=fmtDate(fechaFin);
+}
+
+// ── API DATOS ─────────────────────────────────────────────────────────────────
+async function cargarDatos(){
+  showLoading('Cargando datos del equipo...');
+  try{
+    const r=await fetch(`${SERVER}/api/data`);
+    const data=await r.json();
+    perfiles=data.perfiles||[];
+    programas=data.programas||[];
+  }catch(e){perfiles=[];programas=[];}
+  hideLoading();
+  renderPerfiles();renderProgramas();poblarSelects();
+}
+
+async function guardarDatos(){
+  try{
+    await fetch(`${SERVER}/api/save`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({perfiles,programas})
+    });
+  }catch(e){console.error('Error guardando:',e);}
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────────
+function showTab(t){
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(el=>el.classList.remove('active'));
+  ['calc','doc','perfiles','programas'].forEach((n,i)=>{
+    if(n===t){document.querySelectorAll('.tab')[i].classList.add('active');document.getElementById('panel-'+n).classList.add('active');}
+  });
+  if(t==='doc')prepDoc();
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function ini(n){const p=n.trim().split(' ');return(p[0][0]+(p[1]?p[1][0]:'')).toUpperCase();}
+function fmt(n){return'$'+n.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+function poblarSelects(){
+  // Select persona
+  const sp=document.getElementById('selectPersona'),vp=sp.value;
+  sp.innerHTML='<option value="">— Seleccionar persona —</option>';
+  perfiles.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.nombre;sp.appendChild(o);});
+  if(vp)sp.value=vp;
+  // Select programas
+  const spr=document.getElementById('programaSelect');
+  spr.innerHTML='<option value="">— Seleccionar programa —</option>';
+  programas.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.nombre;spr.appendChild(o);});
+}
+
+// ── PERFILES ──────────────────────────────────────────────────────────────────
+function renderPerfiles(){
+  const g=document.getElementById('perfilesGrid');
+  if(!perfiles.length){
+    g.innerHTML='<div class="empty-state"><div class="icon">👤</div><p style="font-size:14px;font-weight:600;">Sin perfiles registrados</p><p style="font-size:12px;margin-top:4px;">Agrega a tu equipo para agilizar las solicitudes</p></div>';
+    return;
+  }
+  g.innerHTML=perfiles.map(p=>`<div class="perfil-card">
+    <div class="perfil-card-top">
+      <div class="perfil-card-avatar">${ini(p.nombre)}</div>
+      <div><div class="perfil-card-name">${p.nombre}</div><div class="perfil-card-rango">${RANGOS[p.rango]?.label||'—'}</div></div>
+    </div>
+    <div class="perfil-card-details">
+      <span>📋 ${p.cargo||'—'}</span>
+      <span>🪪 ${p.rfc||'—'}</span>
+      <span>✉️ ${p.email||'—'}</span>
+      ${p.area?`<span>🏢 ${p.area}</span>`:''}
+      ${p.auth1_nombre?`<span style="margin-top:4px;color:#333;font-weight:600;">Autorizó 1: ${p.auth1_nombre}</span>`:''}
+      ${p.auth2_nombre?`<span style="color:#333;font-weight:600;">Autorizó 2: ${p.auth2_nombre}</span>`:''}
+    </div>
+    <div class="perfil-card-actions">
+      <button class="btn-sm btn-sm-edit" onclick="abrirModalPerfil('${p.id}')">✏ Editar</button>
+      <button class="btn-sm btn-sm-del" onclick="confirmarElimPerfil('${p.id}')">🗑 Eliminar</button>
+    </div>
+  </div>`).join('');
+}
+
+function abrirModalPerfil(id){
+  editPerfilId=id;
+  document.getElementById('btnElimPerfil').style.display=id?'block':'none';
+  if(id){
+    const p=perfiles.find(x=>x.id===id);
+    document.getElementById('mPTitle').textContent='Editar perfil';
+    document.getElementById('mNombre').value=p.nombre||'';
+    document.getElementById('mRfc').value=p.rfc||'';
+    document.getElementById('mEmail').value=p.email||'';
+    document.getElementById('mCargo').value=p.cargo||'';
+    document.getElementById('mRango').value=p.rango||'';
+    document.getElementById('mArea').value=p.area||'';
+    document.getElementById('mAuth1n').value=p.auth1_nombre||'';
+    document.getElementById('mAuth1c').value=p.auth1_cargo||'';
+    document.getElementById('mAuth2n').value=p.auth2_nombre||'';
+    document.getElementById('mAuth2c').value=p.auth2_cargo||'';
+  } else {
+    document.getElementById('mPTitle').textContent='Nuevo perfil';
+    ['mNombre','mRfc','mEmail','mCargo','mArea','mAuth1n','mAuth1c','mAuth2n','mAuth2c'].forEach(i=>document.getElementById(i).value='');
+    document.getElementById('mRango').value='';
+  }
+  document.getElementById('modalPerfil').classList.add('open');
+}
+function cerrarModalPerfil(){document.getElementById('modalPerfil').classList.remove('open');}
+
+async function guardarPerfil(){
+  const n=document.getElementById('mNombre').value.trim();
+  const r=document.getElementById('mRfc').value.trim().toUpperCase();
+  const e=document.getElementById('mEmail').value.trim().toLowerCase();
+  const c=document.getElementById('mCargo').value.trim();
+  const rg=document.getElementById('mRango').value;
+  if(!n||!r||!e||!c||!rg){alert('Completa los campos obligatorios (*)');return;}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)){alert('El correo electrónico no es válido');return;}
+  const datos={
+    nombre:n,rfc:r,email:e,cargo:c,rango:rg,
+    area:document.getElementById('mArea').value.trim(),
+    auth1_nombre:document.getElementById('mAuth1n').value.trim(),
+    auth1_cargo:document.getElementById('mAuth1c').value.trim(),
+    auth2_nombre:document.getElementById('mAuth2n').value.trim(),
+    auth2_cargo:document.getElementById('mAuth2c').value.trim(),
+  };
+  if(editPerfilId){
+    const i=perfiles.findIndex(x=>x.id===editPerfilId);
+    if(i>=0)perfiles[i]={...perfiles[i],...datos};
+  } else {
+    perfiles.push({id:'p_'+Date.now(),...datos});
+  }
+  showLoading('Guardando perfil...');
+  await guardarDatos();
+  hideLoading();
+  renderPerfiles();poblarSelects();cerrarModalPerfil();
+  if(editPerfilId===perfilActualId)actualizarBadge(perfilActualId);
+}
+async function confirmarElimPerfil(id){
+  if(!confirm('¿Eliminar este perfil?'))return;
+  perfiles=perfiles.filter(x=>x.id!==id);
+  showLoading('Eliminando...');
+  await guardarDatos();hideLoading();
+  renderPerfiles();poblarSelects();
+  if(perfilActualId===id){perfilActualId=null;limpiarBadge();}
+}
+function eliminarPerfilModal(){if(editPerfilId)confirmarElimPerfil(editPerfilId);cerrarModalPerfil();}
+
+function cargarPerfil(){
+  const id=document.getElementById('selectPersona').value;
+  perfilActualId=id||null;
+  if(!id){limpiarBadge();return;}
+  const p=perfiles.find(x=>x.id===id);if(!p)return;
+  document.getElementById('nombre').value=p.nombre;
+  document.getElementById('rfc').value=p.rfc;
+  document.getElementById('cargo').value=p.cargo;
+  document.getElementById('rango').value=p.rango;
+  actualizarBadge(id);calcular();
+}
+function actualizarBadge(id){
+  const p=perfiles.find(x=>x.id===id);if(!p)return;
+  document.getElementById('perfilBadge').style.display='flex';
+  document.getElementById('badgeAvatar').textContent=ini(p.nombre);
+  document.getElementById('badgeName').textContent=p.nombre;
+  document.getElementById('badgeDetail').textContent=(RANGOS[p.rango]?.label||'—')+' · '+p.cargo+(p.area?' · '+p.area:'');
+  const ec=document.getElementById('badgeEmail');
+  if(p.email){ec.style.display='inline-flex';document.getElementById('badgeEmailTxt').textContent=p.email;}
+  else ec.style.display='none';
+  document.getElementById('camposPersona').style.display='none';
+}
+function limpiarBadge(){
+  document.getElementById('perfilBadge').style.display='none';
+  document.getElementById('camposPersona').style.display='block';
+  ['nombre','rfc','cargo'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('rango').value='';calcular();
+}
+function editarActual(){if(perfilActualId)abrirModalPerfil(perfilActualId);}
+
+// ── PROGRAMAS ──────────────────────────────────────────────────────────────────
+function renderProgramas(){
+  const el=document.getElementById('programasList');
+  if(!programas.length){
+    el.innerHTML='<div class="empty-state"><div class="icon">📋</div><p style="font-size:14px;font-weight:600;">Sin programas registrados</p><p style="font-size:12px;margin-top:4px;">Agrega programas y sus motivos frecuentes</p></div>';
+    return;
+  }
+  el.innerHTML=programas.map(p=>`<div class="programa-item">
+    <div class="programa-item-info">
+      <div class="programa-item-name">${p.nombre}</div>
+      <div class="programa-item-motivos" style="margin-top:6px;">
+        ${(p.motivos||[]).map(m=>`<span class="motivo-tag">${m.substring(0,60)}${m.length>60?'...':''}</span>`).join('')}
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;flex-shrink:0;">
+      <button class="btn-sm btn-sm-edit" onclick="abrirModalPrograma('${p.id}')">✏</button>
+      <button class="btn-sm btn-sm-del" onclick="confirmarElimProg('${p.id}')">🗑</button>
+    </div>
+  </div>`).join('');
+}
+
+function abrirModalPrograma(id){
+  editProgId=id;
+  document.getElementById('btnElimProg').style.display=id?'block':'none';
+  if(id){
+    const p=programas.find(x=>x.id===id);
+    document.getElementById('mProgTitle').textContent='Editar programa';
+    document.getElementById('mProgNombre').value=p.nombre||'';
+    document.getElementById('mProgMotivos').value=(p.motivos||[]).join('\n');
+  } else {
+    document.getElementById('mProgTitle').textContent='Nuevo programa';
+    document.getElementById('mProgNombre').value='';
+    document.getElementById('mProgMotivos').value='';
+  }
+  document.getElementById('modalPrograma').classList.add('open');
+}
+function cerrarModalPrograma(){document.getElementById('modalPrograma').classList.remove('open');}
+
+async function guardarPrograma(){
+  const n=document.getElementById('mProgNombre').value.trim();
+  if(!n){alert('Escribe el nombre del programa');return;}
+  const motivos=document.getElementById('mProgMotivos').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  if(editProgId){
+    const i=programas.findIndex(x=>x.id===editProgId);
+    if(i>=0)programas[i]={...programas[i],nombre:n,motivos};
+  } else {
+    programas.push({id:'prog_'+Date.now(),nombre:n,motivos});
+  }
+  showLoading('Guardando programa...');
+  await guardarDatos();hideLoading();
+  renderProgramas();poblarSelects();cerrarModalPrograma();
+}
+async function confirmarElimProg(id){
+  if(!confirm('¿Eliminar este programa?'))return;
+  programas=programas.filter(x=>x.id!==id);
+  showLoading('Eliminando...');
+  await guardarDatos();hideLoading();
+  renderProgramas();poblarSelects();
+}
+function eliminarProgModal(){if(editProgId)confirmarElimProg(editProgId);cerrarModalPrograma();}
+
+function onProgramaSelect(){
+  const id=document.getElementById('programaSelect').value;
+  const ms=document.getElementById('motivoSelect');
+  ms.innerHTML='<option value="">— Seleccionar motivo —</option>';
+  if(!id)return;
+  const p=programas.find(x=>x.id===id);
+  if(!p||!p.motivos)return;
+  p.motivos.forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m.substring(0,70)+(m.length>70?'...':'');ms.appendChild(o);});
+}
+function onMotivoSelect(){
+  const v=document.getElementById('motivoSelect').value;
+  if(v)document.getElementById('motivo').value=v;
+}
+
+// ── CALCULADORA ───────────────────────────────────────────────────────────────
+function toggleC(id){
+  conceptos[id]=!conceptos[id];
+  document.getElementById('toggle-'+id).className='toggle'+(conceptos[id]?' on':'');
+  if(id==='combustible')document.getElementById('grupCil').style.display=conceptos[id]?'block':'none';
+  calcular();
+}
+
+function onTipoChange(){
+  const tipo=document.getElementById('tipoViaje').value;
+  const sel=document.getElementById('destino');
+  sel.disabled=false;sel.innerHTML='<option value="">— Seleccionar destino —</option>';
+  let lista=tipo==='sinaloa'?D_SIN:tipo==='especial'?D_ESP:D_NAC;
+  lista.forEach(d=>{const o=document.createElement('option');o.value=d.id;o.textContent=d.n;sel.appendChild(o);});
+  document.getElementById('destinoCustom').value='';
+  calcular();
+}
+
+function onDestinoChange(){
+  const tipo=document.getElementById('tipoViaje').value;
+  const destId=document.getElementById('destino').value;
+  let lista=tipo==='sinaloa'?D_SIN:tipo==='especial'?D_ESP:D_NAC;
+  const dest=lista.find(d=>d.id===destId);
+  if(dest) document.getElementById('destinoCustom').value=dest.n;
+  calcular();
+}
+
+function calcular(){
+  const rK=document.getElementById('rango').value;
+  const tipo=document.getElementById('tipoViaje').value;
+  const destId=document.getElementById('destino').value;
+  const destCustom=document.getElementById('destinoCustom').value.trim();
+  const dias=Math.max(1,parseInt(document.getElementById('dias').value)||1);
+  const noches=Math.max(0,parseInt(document.getElementById('noches').value)||0);
+  const cil=document.getElementById('cilindros').value;
+  if(!rK||!tipo||(!destId&&!destCustom)){
+    document.getElementById('resultEmpty').style.display='block';
+    document.getElementById('resultContent').style.display='none';
+    document.getElementById('btnGenDoc').disabled=true;
+    ultimoCalculo=null;return;
+  }
+  const rango=RANGOS[rK];
+  let rows=[],total=0;
+  let lista=tipo==='sinaloa'?D_SIN:tipo==='especial'?D_ESP:D_NAC;
+  const dest=lista.find(d=>d.id===destId)||null;
+  const destNombre=destCustom||(dest?dest.n:destId);
+  let montos={alimentos:0,hospedaje:0,taxis:0,combustible:0,peajes:0};
+  const tarifaAlim=tipo==='sinaloa'?rango.al_sin:rango.al_esp;
+  if(conceptos.alimentos&&dias>0){const m=tarifaAlim*dias;total+=m;montos.alimentos=m;rows.push({label:'Alimentos',detail:`${dias} día(s) × ${fmt(tarifaAlim)}/día`,amount:m});}
+  if(conceptos.hospedaje&&noches>0){const m=rango.hosp*noches;total+=m;montos.hospedaje=m;rows.push({label:'Hospedaje',detail:`${noches} noche(s) × ${fmt(rango.hosp)}/noche`,amount:m});}
+  if(conceptos.taxis&&dias>0){const m=rango.taxis*dias;total+=m;montos.taxis=m;rows.push({label:'Taxis',detail:`${dias} día(s) × ${fmt(rango.taxis)}/día`,amount:m});}
+  if(conceptos.combustible&&dest){
+    const mc=dest['c'+cil]||0,mp=dest.p||0;
+    if(mc>0){total+=mc;montos.combustible=mc;rows.push({label:`Combustible (${cil} cil.)`,detail:'Ida y vuelta',amount:mc});}
+    if(mp>0){total+=mp;montos.peajes=mp;rows.push({label:'Peajes',detail:'Ida y vuelta',amount:mp});}
+  }
+  const tipos={sinaloa:'Dentro de Sinaloa',especial:'Los Mochis / Mazatlán',nacional:'Fuera del Estado'};
+  document.getElementById('resultEmpty').style.display='none';
+  document.getElementById('resultContent').style.display='block';
+  document.getElementById('resultTag').textContent=tipos[tipo]||'';
+  document.getElementById('resultDestino').textContent=destNombre;
+  const nom=document.getElementById('nombre').value;
+  document.getElementById('resultMeta').textContent=(nom?nom.split(' ')[0]+' · ':'')+RANGOS[rK].label+' · '+dias+' día(s)';
+  const el=document.getElementById('resultRows');el.innerHTML='';
+  rows.forEach(r=>{
+    const div=document.createElement('div');div.className='result-row';
+    div.innerHTML=`<div><div class="result-row-label">${r.label}</div><div class="result-row-detail">${r.detail}</div></div><div class="result-row-amount">${fmt(r.amount)}</div>`;
+    el.appendChild(div);
+  });
+  document.getElementById('resultTotal').textContent=fmt(total);
+  document.getElementById('btnGenDoc').disabled=false;
+  ultimoCalculo={rows,total,destNombre,tipo,rK,dias,noches,montos};
+}
+
+function resetCalc(){
+  document.getElementById('tipoViaje').value='';
+  document.getElementById('destino').innerHTML='<option value="">— Primero elige el tipo —</option>';
+  document.getElementById('destino').disabled=true;
+  document.getElementById('destinoCustom').value='';
+  document.getElementById('dias').value=1;document.getElementById('noches').value=0;
+  document.getElementById('fechaIniPicker').value='';
+  document.getElementById('fechaExp').value='';document.getElementById('fechaFin').value='';
+  document.getElementById('programaSelect').value='';document.getElementById('motivoSelect').innerHTML='<option value="">—</option>';
+  document.getElementById('motivo').value='';
+  document.getElementById('resultEmpty').style.display='block';
+  document.getElementById('resultContent').style.display='none';
+  document.getElementById('btnGenDoc').disabled=true;ultimoCalculo=null;
+}
+
+// ── DOCUMENTO ─────────────────────────────────────────────────────────────────
+function selDoc(t){
+  docType=t;
+  document.getElementById('dtyp-oficio').classList.toggle('selected',t==='oficio');
+  document.getElementById('dtyp-repos').classList.toggle('selected',t==='repos');
+}
+function prepDoc(){
+  const has=!!ultimoCalculo;
+  document.getElementById('docSummary').style.display=has?'block':'none';
+  document.getElementById('docNoCalc').style.display=has?'none':'block';
+  if(!has)return;
+  const sb=document.getElementById('summaryBox');
+  sb.innerHTML=ultimoCalculo.rows.map(r=>`<div class="s-row"><span>${r.label}</span><span>${fmt(r.amount)}</span></div>`).join('')
+    +`<div class="s-total"><span>TOTAL</span><span>${fmt(ultimoCalculo.total)}</span></div>`;
+  const p=perfiles.find(x=>x.id===perfilActualId);
+  const ei=document.getElementById('emailInfo');
+  ei.innerHTML=p?.email
+    ?`✉️ Se enviará a: <strong>${p.email}</strong>`
+    :'⚠️ Sin correo registrado — solo se descargará el archivo.';
+  document.getElementById('statusCard').style.display='none';
+  document.getElementById('excelBtnText').textContent='📊 Generar Excel y enviar por correo';
+}
+
+async function generarYEnviar(){
+  if(!ultimoCalculo)return;
+  const btn=document.getElementById('btnExcel');
+  const sp=document.getElementById('excelSpinner');
+  const bt=document.getElementById('excelBtnText');
+  btn.disabled=true;sp.style.display='inline-block';bt.textContent='Generando...';
+  document.getElementById('statusCard').style.display='none';
+
+  const p=perfiles.find(x=>x.id===perfilActualId);
+  const {total,destNombre,montos}=ultimoCalculo;
+  const pickerVal=document.getElementById('fechaIniPicker').value;
+  let fechaIniStr='';
+  if(pickerVal){const[y,m,d]=pickerVal.split('-');fechaIniStr=`${d}/${m}/${y}`;}
+
+  const payload={
+    titulo: docType==='repos'?'SOLICITUD DE REPOSICIÓN DE VIÁTICOS':'SOLICITUD DE OFICIO DE COMISIÓN',
+    programa: document.getElementById('programaSelect').options[document.getElementById('programaSelect').selectedIndex]?.text||'',
+    rfc:    document.getElementById('rfc').value,
+    nombre: document.getElementById('nombre').value,
+    cargo:  document.getElementById('cargo').value,
+    destino: destNombre,
+    fecha_ini: fechaIniStr,
+    fecha_fin: document.getElementById('fechaFin').value,
+    motivo: document.getElementById('motivo').value,
+    alimentos:   montos.alimentos||null,
+    gasolina:    montos.combustible||null,
+    combustible: montos.combustible||null,
+    peaje:       montos.peajes||null,
+    hospedaje:   montos.hospedaje||null,
+    transporte:  null,
+    total,
+    email_destinatario: p?.email||'',
+    auth1_nombre: p?.auth1_nombre||'MTRÔ. FELICIANO CASTRO MELÉNDREZ',
+    auth1_cargo:  p?.auth1_cargo||'SECRETARIO DE ECONOMÍA',
+    auth2_nombre: p?.auth2_nombre||'ING. XOCHITL FÉLIX CUADRAS',
+    auth2_cargo:  p?.auth2_cargo||'COORDINADORA ADMINISTRATIVA',
+  };
+
+  const ep=docType==='repos'?`${SERVER}/generar/reposicion`:`${SERVER}/generar/solicitud`;
+  try{
+    const resp=await fetch(ep,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(!resp.ok)throw new Error('Error '+resp.status);
+    const data=await resp.json();
+    if(data.error)throw new Error(data.error);
+
+    // Descargar Excel
+    const bytes=Uint8Array.from(atob(data.xlsx_b64),c=>c.charCodeAt(0));
+    const blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=data.filename;a.click();URL.revokeObjectURL(url);
+
+    // Status
+    const sc=document.getElementById('statusCard');
+    const st=document.getElementById('statusTitle');
+    const sd=document.getElementById('statusDetail');
+    let msg='';
+    if(data.email_ok){
+      sc.className='status-card status-ok';
+      st.textContent='✅ ¡Documento generado y enviado correctamente!';
+      sd.textContent=`Folio asignado: ${data.folio} · Fecha expedición: ${data.fecha_exp} · Correo enviado a ${p?.email}`;
+    } else {
+      sc.className='status-card status-ok';
+      st.textContent=`📥 Documento generado — Folio: ${data.folio}`;
+      sd.textContent=data.email_err
+        ?`El Excel fue descargado. El correo no pudo enviarse: ${data.email_err}`
+        :`El Excel fue descargado. No hay correo registrado para esta persona.`;
+    }
+    sc.style.display='block';
+  }catch(e){
+    const sc=document.getElementById('statusCard');sc.className='status-card status-err';sc.style.display='block';
+    document.getElementById('statusTitle').textContent='❌ Error al generar el documento';
+    document.getElementById('statusDetail').textContent=e.message;
+  }finally{
+    btn.disabled=false;sp.style.display='none';bt.textContent='📊 Generar Excel y enviar por correo';
+  }
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+cargarDatos();
+</script>
+</body>
+</html>
