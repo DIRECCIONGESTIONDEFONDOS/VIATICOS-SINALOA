@@ -1488,7 +1488,10 @@ async function generarYEnviar(){
     st.textContent=`✅ Documento generado — Folio: ${data.folio} · Expedición: ${data.fecha_exp}`;
     sd.textContent=data.email_ok
       ?`📧 Correo enviado a ${p?.email}`
-      :enviarCorreoActivo?`⚠️ No se pudo enviar el correo. El archivo fue descargado.`:`📥 Archivo descargado correctamente.`;
+      :enviarCorreoActivo
+        ?`⚠️ No se pudo enviar: ${data.email_err||'Error desconocido'}`
+        :`📥 Archivo descargado correctamente.`;
+    if(data.email_err) console.error('Email error detalle:', data.email_err);
   }catch(e){
     const sc=document.getElementById('statusCard');sc.className='status-card status-err';sc.style.display='block';
     document.getElementById('statusTitle').textContent='❌ Error al generar';
