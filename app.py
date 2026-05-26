@@ -24,14 +24,55 @@ GITHUB_OWNER = os.environ.get('GITHUB_OWNER', 'DIRECCIONGESTIONDEFONDOS')
 GITHUB_REPO  = os.environ.get('GITHUB_REPO',  'VIATICOS-SINALOA')
 DATA_FILE    = 'data.json'
 
-ADMIN_EMAILS = ['abraham.navarro@sinaloa.gob.mx', 'direcciongestiondefondos@gmail.com']
-DEFAULT_ADMIN_PASS = 'DGFADMIN'
+ADMIN_EMAILS = [
+    e.strip().lower()
+    for e in os.environ.get(
+        'ADMIN_EMAILS',
+        'abraham.navarro@sinaloa.gob.mx,direcciongestiondefondos@gmail.com'
+    ).split(',')
+    if e.strip()
+]
+DEFAULT_ADMIN_PASS = os.environ.get('ADMIN_PASSWORD', 'DGFADMIN')
+RESET_ADMIN_PASSWORD = os.environ.get('RESET_ADMIN_PASSWORD', 'false').lower() == 'true'
 
 # ── SESIONES EN MEMORIA ───────────────────────────────────────────────────────
 sessions = {}  # token -> {email, role, expires}
 
 def hash_pass(p):
     return hashlib.sha256(p.encode()).hexdigest()
+
+def asegurar_admins(data):
+    """Garantiza que los correos administradores existan y tengan rol admin."""
+    data.setdefault('usuarios', [])
+    nombres_admin = {
+        'abraham.navarro@sinaloa.gob.mx': 'Abraham Navarro',
+        'direcciongestiondefondos@gmail.com': 'Dirección Gestión de Fondos'
+    }
+
+    for correo in ADMIN_EMAILS:
+        usuario = next(
+            (u for u in data['usuarios'] if str(u.get('email', '')).lower().strip() == correo),
+            None
+        )
+
+        if not usuario:
+            data['usuarios'].append({
+                'email': correo,
+                'pass_hash': hash_pass(DEFAULT_ADMIN_PASS),
+                'role': 'admin',
+                'nombre': nombres_admin.get(correo, correo)
+            })
+        else:
+            usuario['email'] = correo
+            usuario['role'] = 'admin'
+            usuario['nombre'] = usuario.get('nombre') or nombres_admin.get(correo, correo)
+
+            # Solo reinicia la contraseña si se activa temporalmente RESET_ADMIN_PASSWORD=true
+            # o si el usuario todavía no tenía contraseña.
+            if RESET_ADMIN_PASSWORD or not usuario.get('pass_hash'):
+                usuario['pass_hash'] = hash_pass(DEFAULT_ADMIN_PASS)
+
+    return data
 
 def create_session(email, role):
     token = secrets.token_hex(32)
@@ -128,7 +169,7 @@ def gh_get_data():
             content = base64.b64decode(resp['content']).decode('utf-8')
             data = json.loads(content)
             data['_sha'] = resp['sha']
-            return data
+            return asegurar_admins(data)
     except urllib.error.HTTPError as e:
         if e.code == 404:
             # Init with default admin users
