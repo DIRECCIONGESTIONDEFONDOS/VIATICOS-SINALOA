@@ -896,7 +896,10 @@ class Handler(BaseHTTPRequestHandler):
                         enviar_correo(email_dest, asunto, html_correo(d, total, tipo), xlsx, fname)
                         email_ok = True
                     except Exception as e:
-                        email_err = str(e)
+                        import traceback
+                        email_err = f"{type(e).__name__}: {str(e)}"
+                        print(f"Email error: {email_err}")
+                        print(traceback.format_exc())
                         print('ERROR EN CORREO:', flush=True)
                         print(traceback.format_exc(), flush=True)
 
