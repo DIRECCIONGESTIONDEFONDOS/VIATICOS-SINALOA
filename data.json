@@ -14,6 +14,14 @@
       "auth2_cargo": "COORDINADORA ADMINISTRATIVA"
     }
   ],
-  "programas": [],
+  "programas": [
+    {
+      "id": "prog_1779770955898",
+      "nombre": "EQUIPA SINALOA",
+      "motivos": [
+        "ENTREGA DE EQUIPAMIENTO PRODUCTIVO A BENEFICIARIOS DEL MUNICIPIO"
+      ]
+    }
+  ],
   "folios": {}
 }
