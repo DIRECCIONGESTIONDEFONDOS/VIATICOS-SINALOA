@@ -147,22 +147,154 @@ def gh_headers():
     }
 
 def asegurar_admins(data):
+    """
+    Normaliza data.json para que la app siempre reciba listas válidas.
+    También asegura administradores iniciales y el programa base EQUIPA SINALOA.
+    Corrige registros viejos que hayan quedado como {"id": "...", "datos": {...}}.
+    """
     if not isinstance(data, dict):
         data = {}
-    data.setdefault('perfiles', [])
-    data.setdefault('programas', [])
-    data.setdefault('folios', {})
-    data.setdefault('historial', [])
-    data.setdefault('usuarios', [])
 
     changed = False
+
+    # Asegurar estructura base
+    defaults = {
+        'perfiles': [],
+        'programas': [],
+        'folios': {},
+        'historial': [],
+        'usuarios': []
+    }
+    for k, v in defaults.items():
+        if k not in data or data.get(k) is None:
+            data[k] = v
+            changed = True
+
+    if not isinstance(data.get('perfiles'), list):
+        data['perfiles'] = []
+        changed = True
+    if not isinstance(data.get('programas'), list):
+        data['programas'] = []
+        changed = True
+    if not isinstance(data.get('usuarios'), list):
+        data['usuarios'] = []
+        changed = True
+    if not isinstance(data.get('historial'), list):
+        data['historial'] = []
+        changed = True
+    if not isinstance(data.get('folios'), dict):
+        data['folios'] = {}
+        changed = True
+
+    # Normalizar perfiles
+    perfiles_norm = []
+    for idx, p in enumerate(data.get('perfiles', [])):
+        if not isinstance(p, dict):
+            changed = True
+            continue
+
+        # Corrige registros mal guardados como {id:'p...', datos:{nombre...}}
+        if isinstance(p.get('datos'), dict):
+            merged = dict(p.get('datos'))
+            merged['id'] = p.get('id') or merged.get('id') or f'p_{idx+1}'
+            p = merged
+            changed = True
+
+        p.setdefault('id', f'p_{idx+1}')
+        p.setdefault('nombre', '')
+        p.setdefault('rfc', '')
+        p.setdefault('email', '')
+        p.setdefault('cargo', '')
+        p.setdefault('rango', '')
+        p.setdefault('area', '')
+        p.setdefault('auth1_nombre', '')
+        p.setdefault('auth1_cargo', '')
+        p.setdefault('auth2_nombre', '')
+        p.setdefault('auth2_cargo', '')
+        perfiles_norm.append(p)
+
+    if perfiles_norm != data.get('perfiles', []):
+        data['perfiles'] = perfiles_norm
+        changed = True
+
+    # Normalizar programas
+    programas_norm = []
+    for idx, p in enumerate(data.get('programas', [])):
+        if not isinstance(p, dict):
+            changed = True
+            continue
+
+        p.setdefault('id', f'prog_{idx+1}')
+        p.setdefault('nombre', '')
+        if not isinstance(p.get('motivos'), list):
+            p['motivos'] = []
+            changed = True
+
+        # Quitar programas totalmente vacíos
+        if not str(p.get('nombre', '')).strip():
+            changed = True
+            continue
+
+        programas_norm.append(p)
+
+    data['programas'] = programas_norm
+
+    # Asegurar EQUIPA SINALOA como programa base editable
+    equipa_base = {
+        'id': 'prog_equipa_sinaloa',
+        'nombre': 'EQUIPA SINALOA',
+        'motivos': [
+            'Entrega de equipamiento productivo a personas beneficiarias',
+            'Supervisión y seguimiento a beneficiarios del programa',
+            'Validación de solicitudes y expedientes del programa',
+            'Levantamiento de información para integración de padrones',
+            'Reunión de coordinación operativa del programa'
+        ]
+    }
+
+    idx_equipa = next(
+        (
+            i for i, p in enumerate(data['programas'])
+            if str(p.get('id', '')).strip() == 'prog_equipa_sinaloa'
+            or str(p.get('nombre', '')).strip().lower() == 'equipa sinaloa'
+        ),
+        None
+    )
+
+    if idx_equipa is None:
+        data['programas'].insert(0, equipa_base)
+        changed = True
+    else:
+        p = data['programas'][idx_equipa]
+        if not p.get('id'):
+            p['id'] = 'prog_equipa_sinaloa'
+            changed = True
+        if not p.get('nombre'):
+            p['nombre'] = 'EQUIPA SINALOA'
+            changed = True
+        if not isinstance(p.get('motivos'), list) or not p.get('motivos'):
+            p['motivos'] = equipa_base['motivos']
+            changed = True
+        # mover al inicio
+        if idx_equipa != 0:
+            equipa = data['programas'].pop(idx_equipa)
+            data['programas'].insert(0, equipa)
+            changed = True
+
+    # Asegurar administradores iniciales
     nombres_default = {
         'abraham.navarro@sinaloa.gob.mx': 'Abraham Navarro',
         'direcciongestiondefondos@gmail.com': 'Dirección Gestión de Fondos'
     }
 
     for correo in ADMIN_EMAILS:
-        usuario = next((u for u in data['usuarios'] if str(u.get('email', '')).strip().lower() == correo), None)
+        usuario = next(
+            (
+                u for u in data['usuarios']
+                if isinstance(u, dict) and str(u.get('email', '')).strip().lower() == correo
+            ),
+            None
+        )
         if not usuario:
             data['usuarios'].append({
                 'email': correo,
@@ -557,6 +689,7 @@ class Handler(BaseHTTPRequestHandler):
                 data['historial'] = []
                 data['folios'] = {}
                 data['_sha'] = sha
+                data, _ = asegurar_admins(data)
                 gh_save_data(data)
                 self.send_json({'ok': True})
             except Exception as e:
@@ -658,6 +791,7 @@ class Handler(BaseHTTPRequestHandler):
                     self.send_json({'ok': False, 'error': 'Contraseña actual incorrecta'}); return
                 usuario['pass_hash'] = hash_pass(new_pwd)
                 data['_sha'] = sha
+                data, _ = asegurar_admins(data)
                 gh_save_data(data)
                 self.send_json({'ok': True})
             except Exception as e:
@@ -676,6 +810,7 @@ class Handler(BaseHTTPRequestHandler):
                 sha  = data.get('_sha')
                 data['usuarios'] = d.get('usuarios', data.get('usuarios', []))
                 data['_sha'] = sha
+                data, _ = asegurar_admins(data)
                 gh_save_data(data)
                 self.send_json({'ok': True})
             except Exception as e:
@@ -705,6 +840,7 @@ class Handler(BaseHTTPRequestHandler):
                     if 'programas' in d:
                         data['programas'] = d['programas']
                 data['_sha'] = sha
+                data, _ = asegurar_admins(data)
                 gh_save_data(data)
                 self.send_json({'ok': True})
             except Exception as e:
