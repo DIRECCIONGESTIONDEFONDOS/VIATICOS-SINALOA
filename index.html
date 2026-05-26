@@ -843,18 +843,25 @@ async function cargarDatos(){
     const r=await fetch(`${SERVER}/api/data`,{headers:authHeaders()});
     if(r.status===401){hideLoading();doLogout();return;}
     const data=await r.json();
-    perfiles=data.perfiles||[];
-    programas=data.programas||[];
-    usuarios=data.usuarios||[];
+    if(data.error){hideLoading();console.error('API error:',data.error);return;}
+    perfiles=Array.isArray(data.perfiles)?data.perfiles:[];
+    programas=Array.isArray(data.programas)?data.programas:[];
+    usuarios=Array.isArray(data.usuarios)?data.usuarios:[];
     if(currentRole==='admin'){
-      historialAdmin=data.historial||[];
+      historialAdmin=Array.isArray(data.historial)?data.historial:[];
     }
-  }catch(e){perfiles=[];programas=[];console.error('Error cargando datos:',e);}
+    console.log('Datos cargados - perfiles:',perfiles.length,'programas:',programas.length,'usuarios:',usuarios.length);
+  }catch(e){
+    console.error('Error cargando datos:',e);
+    perfiles=[];programas=[];usuarios=[];
+  }
   hideLoading();
   renderPerfiles();
   renderProgramas();
   poblarSelects();
-  if(currentRole==='admin'){renderUsuarios();renderHistorialAdmin();}
+  if(currentRole==='admin'){
+    setTimeout(()=>{renderUsuarios();renderHistorialAdmin();},100);
+  }
 }
 
 // ── TABS ──────────────────────────────────────────────────────────────────────
@@ -1729,7 +1736,7 @@ function renderStats(){
   renderTendencia(h);
   renderRanking(h);
   renderDestinos(h);
-  renderProgramas(h);
+  renderProgramasChart(h);
   renderTipos(h);
 }
 
@@ -1785,7 +1792,7 @@ function renderDestinos(h){
   charts['destinos']=new Chart(ctx,{type:'bar',data:{labels:sorted.map(([k])=>k),datasets:[{data:sorted.map(([,v])=>v),backgroundColor:colors,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:10},maxRotation:30}},y:{ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,0.05)'},beginAtZero:true}}}});
 }
 
-function renderProgramas(h){
+function renderProgramasChart(h){
   destroyChart('programas');
   const progs={};
   h.forEach(r=>{const p=r.programa||'Sin programa';progs[p]=(progs[p]||0)+parseFloat(r.total||0);});
@@ -1803,12 +1810,15 @@ function renderTipos(h){
   charts['tipos']=new Chart(ctx,{type:'doughnut',data:{labels:['Oficio de Comisión','Reposición'],datasets:[{data:[oficio,repos],backgroundColor:['#0f2543','#c8a84b'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:14}}}}});
 }
 
-// Load stats when tab opens
+// Tab hooks
 const _origShowTab = showTab;
 showTab = function(t){
   _origShowTab(t);
-  if(t==='stats') cargarStats();
-  if(t==='admin') cargarHistorialAdmin();
+  if(t==='calc')  { poblarSelects(); }
+  if(t==='stats') { cargarStats(); }
+  if(t==='admin') { cargarHistorialAdmin(); renderUsuarios(); }
+  if(t==='perfiles') { renderPerfiles(); }
+  if(t==='programas') { renderProgramas(); }
 };
 
 if(authToken){iniciarApp();}
