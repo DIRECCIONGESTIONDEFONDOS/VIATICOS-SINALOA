@@ -859,19 +859,33 @@ async function guardarDatos(payload){
 // Programa base para que siempre aparezca en el catálogo
 function asegurarProgramasBase(lista){
   const arr = Array.isArray(lista) ? [...lista] : [];
-  const existeEquipa = arr.some(p => String(p.nombre||'').trim().toLowerCase().includes('equipa'));
-  if(!existeEquipa){
-    arr.unshift({
-      id:'prog_equipa_sinaloa',
-      nombre:'EQUIPA SINALOA',
-      motivos:[
-        'Entrega de equipamiento productivo a personas beneficiarias',
-        'Supervisión y seguimiento a beneficiarios del programa',
-        'Validación de solicitudes y expedientes del programa',
-        'Levantamiento de información para integración de padrones',
-        'Reunión de coordinación operativa del programa'
-      ]
-    });
+  const idx = arr.findIndex(p => String(p?.nombre||'').trim().toLowerCase() === 'equipa sinaloa' || String(p?.id||'') === 'prog_equipa_sinaloa');
+
+  const equipaBase = {
+    id:'prog_equipa_sinaloa',
+    nombre:'EQUIPA SINALOA',
+    motivos:[
+      'Entrega de equipamiento productivo a personas beneficiarias',
+      'Supervisión y seguimiento a beneficiarios del programa',
+      'Validación de solicitudes y expedientes del programa',
+      'Levantamiento de información para integración de padrones',
+      'Reunión de coordinación operativa del programa'
+    ]
+  };
+
+  if(idx === -1){
+    arr.unshift(equipaBase);
+  } else {
+    arr[idx] = {
+      ...equipaBase,
+      ...arr[idx],
+      id: arr[idx].id || 'prog_equipa_sinaloa',
+      nombre: arr[idx].nombre || 'EQUIPA SINALOA',
+      motivos: Array.isArray(arr[idx].motivos) ? arr[idx].motivos : equipaBase.motivos
+    };
+    // Mover EQUIPA al inicio para que siempre sea visible
+    const [equipa] = arr.splice(idx, 1);
+    arr.unshift(equipa);
   }
   return arr;
 }
@@ -907,13 +921,44 @@ function actualizarFechas(){
 }
 
 function poblarSelects(){
+  perfiles = Array.isArray(perfiles) ? perfiles : [];
+  programas = asegurarProgramasBase(programas);
+
   const sp=document.getElementById('selectPersona'),vp=sp.value;
   sp.innerHTML='<option value="">— Seleccionar persona —</option>';
-  perfiles.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.nombre;sp.appendChild(o);});
+  perfiles.forEach(p=>{
+    if(!p || !p.id) return;
+    const o=document.createElement('option');
+    o.value=p.id;
+    o.textContent=p.nombre || '(Sin nombre)';
+    sp.appendChild(o);
+  });
   if(vp)sp.value=vp;
+
+  const ss=document.getElementById('selectSolicitante');
+  if(ss){
+    const vs=ss.value;
+    ss.innerHTML='<option value="">— Seleccionar solicitante —</option>';
+    perfiles.forEach(p=>{
+      if(!p || !p.id) return;
+      const o=document.createElement('option');
+      o.value=p.id;
+      o.textContent=p.nombre || '(Sin nombre)';
+      ss.appendChild(o);
+    });
+    if(vs)ss.value=vs;
+  }
+
   const spr=document.getElementById('programaSelect');
   spr.innerHTML='<option value="">— Seleccionar programa —</option>';
-  programas.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.nombre;spr.appendChild(o);});
+  programas.forEach(p=>{
+    if(!p || !p.id) return;
+    if(!Array.isArray(p.motivos)) p.motivos=[];
+    const o=document.createElement('option');
+    o.value=p.id;
+    o.textContent=p.nombre || '(Sin nombre)';
+    spr.appendChild(o);
+  });
 }
 
 // ── PERFILES ──────────────────────────────────────────────────────────────────
@@ -1048,12 +1093,23 @@ function editarActual(){if(perfilActualId&&currentRole==='admin')abrirModalPerfi
 
 // ── PROGRAMAS ──────────────────────────────────────────────────────────────────
 function renderProgramas(){
+  programas = asegurarProgramasBase(programas);
+  programas = programas.map(p => ({
+    id: p?.id || ('prog_'+Date.now()+'_'+Math.random().toString(16).slice(2)),
+    nombre: p?.nombre || '(Sin nombre)',
+    motivos: Array.isArray(p?.motivos) ? p.motivos : []
+  }));
+
   const el=document.getElementById('programasList');
-  if(!programas.length){el.innerHTML='<div class="empty-state"><div class="icon">📋</div><p style="font-size:14px;font-weight:600;">Sin programas</p></div>';return;}
+  if(!programas.length){
+    el.innerHTML='<div class="empty-state"><div class="icon">📋</div><p style="font-size:14px;font-weight:600;">Sin programas</p></div>';
+    return;
+  }
+
   el.innerHTML=programas.map(p=>`<div class="programa-item">
     <div class="programa-item-info">
       <div class="programa-item-name">${p.nombre}</div>
-      <div style="margin-top:6px;">${(p.motivos||[]).map(m=>`<span class="motivo-tag">${m.substring(0,60)}${m.length>60?'...':''}</span>`).join('')}</div>
+      <div style="margin-top:6px;">${(Array.isArray(p.motivos)?p.motivos:[]).map(m=>`<span class="motivo-tag">${String(m).substring(0,60)}${String(m).length>60?'...':''}</span>`).join('')}</div>
     </div>
     <div style="display:flex;gap:6px;flex-shrink:0;">
       <button class="btn-sm btn-sm-edit" onclick="abrirModalPrograma('${p.id}')">✏</button>
@@ -1062,41 +1118,86 @@ function renderProgramas(){
   </div>`).join('');
 }
 function abrirModalPrograma(id){
-  editProgId=id;document.getElementById('btnElimProg').style.display=id?'block':'none';
-  if(id){const p=programas.find(x=>x.id===id);document.getElementById('mProgTitle').textContent='Editar programa';document.getElementById('mProgNombre').value=p.nombre||'';document.getElementById('mProgMotivos').value=(p.motivos||[]).join('\n');}
-  else{document.getElementById('mProgTitle').textContent='Nuevo programa';document.getElementById('mProgNombre').value='';document.getElementById('mProgMotivos').value='';}
+  programas = asegurarProgramasBase(programas);
+  editProgId=id;
+  document.getElementById('btnElimProg').style.display=id?'block':'none';
+
+  // No permitir eliminar EQUIPA SINALOA, pero sí editar sus motivos
+  if(id==='prog_equipa_sinaloa'){
+    document.getElementById('btnElimProg').style.display='none';
+  }
+
+  if(id){
+    const p=programas.find(x=>x && x.id===id);
+    document.getElementById('mProgTitle').textContent='Editar programa';
+    document.getElementById('mProgNombre').value=p?.nombre||'';
+    document.getElementById('mProgMotivos').value=(Array.isArray(p?.motivos)?p.motivos:[]).join('\n');
+  }else{
+    document.getElementById('mProgTitle').textContent='Nuevo programa';
+    document.getElementById('mProgNombre').value='';
+    document.getElementById('mProgMotivos').value='';
+  }
   document.getElementById('modalPrograma').classList.add('open');
 }
 function cerrarModalPrograma(){document.getElementById('modalPrograma').classList.remove('open');}
 async function guardarPrograma(){
   const n=document.getElementById('mProgNombre').value.trim();
   if(!n){alert('Escribe el nombre del programa');return;}
-  const motivos=document.getElementById('mProgMotivos').value.split('\\n').map(s=>s.trim()).filter(Boolean);
+
+  programas = asegurarProgramasBase(programas);
+  const motivos=document.getElementById('mProgMotivos').value
+    .split(/\r?\n/)
+    .map(s=>s.trim())
+    .filter(Boolean);
 
   if(editProgId){
-    const i=programas.findIndex(x=>x.id===editProgId);
-    if(i>=0) programas[i]={...programas[i],nombre:n,motivos};
+    const i=programas.findIndex(x=>x && x.id===editProgId);
+    if(i>=0){
+      programas[i]={...programas[i],nombre:n,motivos};
+    } else {
+      programas.push({id:editProgId,nombre:n,motivos});
+    }
   } else {
     programas.push({id:'prog_'+Date.now(),nombre:n,motivos});
   }
 
+  // Normaliza todos los programas antes de guardar para evitar errores por registros incompletos.
+  programas = asegurarProgramasBase(programas).map(p=>({
+    id:p?.id || ('prog_'+Date.now()+'_'+Math.random().toString(16).slice(2)),
+    nombre:p?.nombre || '(Sin nombre)',
+    motivos:Array.isArray(p?.motivos) ? p.motivos : []
+  }));
+
   showLoading('Guardando programa...');
   try{
     await guardarDatos({programas});
-    hideLoading();
     renderProgramas();
     poblarSelects();
     cerrarModalPrograma();
   }catch(err){
-    hideLoading();
     alert('No se pudo guardar el programa: '+err.message);
+  }finally{
+    hideLoading();
   }
 }
 async function confirmarElimProg(id){
+  if(id==='prog_equipa_sinaloa'){
+    alert('EQUIPA SINALOA es un programa base. Puedes editar sus motivos, pero no eliminarlo.');
+    return;
+  }
   if(!confirm('¿Eliminar este programa?'))return;
-  programas=programas.filter(x=>x.id!==id);
-  showLoading('Eliminando...');await guardarDatos({programas});hideLoading();
-  renderProgramas();poblarSelects();
+  programas=(Array.isArray(programas)?programas:[]).filter(p=>p && p.id!==id);
+  programas=asegurarProgramasBase(programas);
+  showLoading('Eliminando programa...');
+  try{
+    await guardarDatos({programas});
+    renderProgramas();
+    poblarSelects();
+  }catch(err){
+    alert('No se pudo eliminar el programa: '+err.message);
+  }finally{
+    hideLoading();
+  }
 }
 function eliminarProgModal(){if(editProgId)confirmarElimProg(editProgId);cerrarModalPrograma();}
 
@@ -1105,8 +1206,15 @@ function onProgramaSelect(){
   const ms=document.getElementById('motivoSelect');
   ms.innerHTML='<option value="">— Seleccionar motivo —</option>';
   if(!id)return;
-  const p=programas.find(x=>x.id===id);
-  (p?.motivos||[]).forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m.substring(0,70)+(m.length>70?'...':'');ms.appendChild(o);});
+  const p=(Array.isArray(programas)?programas:[]).find(x=>x && x.id===id);
+  const motivos = Array.isArray(p?.motivos) ? p.motivos : [];
+  motivos.forEach(m=>{
+    const texto=String(m);
+    const o=document.createElement('option');
+    o.value=texto;
+    o.textContent=texto.substring(0,70)+(texto.length>70?'...':'');
+    ms.appendChild(o);
+  });
 }
 function onMotivoSelect(){const v=document.getElementById('motivoSelect').value;if(v)document.getElementById('motivo').value=v;}
 
