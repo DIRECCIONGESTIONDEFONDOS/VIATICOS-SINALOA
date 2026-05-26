@@ -39,5 +39,23 @@
       "role": "admin",
       "nombre": "Dirección Gestión de Fondos"
     }
+  ],
+  "historial": [
+    {
+      "folio": "SE-SSGFF-0003/2026",
+      "fecha_exp": "22/05/2026",
+      "nombre": "ANA BEATRIZ RIVAS BRAVO",
+      "rfc": "RIBA990504",
+      "cargo": "JEFE DE DEPARTAMENTO DE INDUSTRIA",
+      "destino": "Mazatlán",
+      "fecha_ini": "27/05/2026",
+      "fecha_fin": "29/05/2026",
+      "programa": "EQUIPA SINALOA",
+      "total": 3643.0,
+      "tipo": "Oficio",
+      "email_ok": false,
+      "generado_por": "abraham.navarro@sinaloa.gob.mx",
+      "timestamp": "2026-05-26T18:10:00.161556"
+    }
   ]
 }
