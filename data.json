@@ -51,6 +51,19 @@
       "auth1_cargo": "",
       "auth2_nombre": "",
       "auth2_cargo": ""
+    },
+    {
+      "id": "p_1779836509003",
+      "nombre": "IVÁN RAMÓN ALEXANDRE PORTUGAL ANZURES",
+      "rfc": "POAI010723",
+      "email": "iportugal.economia@gmail.com",
+      "cargo": "ASISTENTE",
+      "rango": "jefe",
+      "area": "DIRECCIÓN ESTATAL DEL EMPLEO",
+      "auth1_nombre": "LIC. ABRIL ESTEFANIA VEGA ARAIZA",
+      "auth1_cargo": "DIRCTORA ESTATAL DEL EMPLEO",
+      "auth2_nombre": "",
+      "auth2_cargo": ""
     }
   ],
   "programas": [
