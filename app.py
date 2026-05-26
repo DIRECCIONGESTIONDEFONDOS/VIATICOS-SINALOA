@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import json, os, io, smtplib, base64, urllib.request, urllib.error, hashlib, secrets, hmac, time
+import json, os, io, smtplib, base64, urllib.request, urllib.error, hashlib, secrets, traceback, hmac, time
 from datetime import datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
@@ -446,11 +446,19 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Headers', 'Content-Type,Authorization')
 
     def send_json(self, obj, code=200):
-        body = json.dumps(obj, ensure_ascii=False).encode()
-        self.send_response(code)
-        self.send_header('Content-Type', 'application/json; charset=utf-8')
-        self.send_header('Content-Length', len(body))
-        self.cors(); self.end_headers(); self.wfile.write(body)
+        try:
+            body = json.dumps(obj, ensure_ascii=False).encode()
+            self.send_response(code)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Content-Length', len(body))
+            self.cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except (BrokenPipeError, ConnectionResetError) as e:
+            print(f"Cliente cerró la conexión antes de recibir respuesta: {e}", flush=True)
+        except Exception:
+            print("Error dentro de send_json:", flush=True)
+            print(traceback.format_exc(), flush=True)
 
     def read_body(self):
         n = int(self.headers.get('Content-Length', 0))
@@ -510,6 +518,8 @@ class Handler(BaseHTTPRequestHandler):
                     result['historial'] = data.get('historial', [])
                 self.send_json(result)
             except Exception as e:
+                print('ERROR DETALLADO:', flush=True)
+                print(traceback.format_exc(), flush=True)
                 self.send_json({'error': str(e)}, 500)
             return
 
@@ -531,6 +541,8 @@ class Handler(BaseHTTPRequestHandler):
                 gh_save_data(data)
                 self.send_json({'ok': True, 'eliminados': antes - despues})
             except Exception as e:
+                print('ERROR DETALLADO:', flush=True)
+                print(traceback.format_exc(), flush=True)
                 self.send_json({'ok': False, 'error': str(e)}, 500)
             return
 
@@ -548,6 +560,8 @@ class Handler(BaseHTTPRequestHandler):
                 gh_save_data(data)
                 self.send_json({'ok': True})
             except Exception as e:
+                print('ERROR DETALLADO:', flush=True)
+                print(traceback.format_exc(), flush=True)
                 self.send_json({'ok': False, 'error': str(e)}, 500)
             return
 
@@ -567,6 +581,8 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_header('Content-Length', len(xlsx))
                 self.cors(); self.end_headers(); self.wfile.write(xlsx)
             except Exception as e:
+                print('ERROR DETALLADO:', flush=True)
+                print(traceback.format_exc(), flush=True)
                 self.send_json({'error': str(e)}, 500)
             return
 
@@ -594,6 +610,8 @@ class Handler(BaseHTTPRequestHandler):
                 token = create_session(email, role)
                 self.send_json({'ok': True, 'token': token, 'role': role, 'nombre': usuario.get('nombre','')})
             except Exception as e:
+                print('ERROR DETALLADO:', flush=True)
+                print(traceback.format_exc(), flush=True)
                 self.send_json({'ok': False, 'error': str(e)}, 500)
             return
 
@@ -619,6 +637,8 @@ class Handler(BaseHTTPRequestHandler):
                 token = create_session(email, role)
                 self.send_json({'ok': True, 'token': token, 'role': role, 'nombre': usuario.get('nombre','')})
             except Exception as e:
+                print('ERROR DETALLADO:', flush=True)
+                print(traceback.format_exc(), flush=True)
                 self.send_json({'ok': False, 'error': str(e)}, 500)
             return
 
@@ -641,6 +661,8 @@ class Handler(BaseHTTPRequestHandler):
                 gh_save_data(data)
                 self.send_json({'ok': True})
             except Exception as e:
+                print('ERROR DETALLADO:', flush=True)
+                print(traceback.format_exc(), flush=True)
                 self.send_json({'ok': False, 'error': str(e)}, 500)
             return
 
@@ -657,6 +679,8 @@ class Handler(BaseHTTPRequestHandler):
                 gh_save_data(data)
                 self.send_json({'ok': True})
             except Exception as e:
+                print('ERROR DETALLADO:', flush=True)
+                print(traceback.format_exc(), flush=True)
                 self.send_json({'ok': False, 'error': str(e)}, 500)
             return
 
@@ -684,6 +708,8 @@ class Handler(BaseHTTPRequestHandler):
                 gh_save_data(data)
                 self.send_json({'ok': True})
             except Exception as e:
+                print('ERROR DETALLADO:', flush=True)
+                print(traceback.format_exc(), flush=True)
                 self.send_json({'ok': False, 'error': str(e)}, 500)
             return
 
@@ -723,6 +749,8 @@ class Handler(BaseHTTPRequestHandler):
                         email_ok = True
                     except Exception as e:
                         email_err = str(e)
+                        print('ERROR EN CORREO:', flush=True)
+                        print(traceback.format_exc(), flush=True)
 
                 print('Guardando historial...', flush=True)
                 # Guardar en historial
@@ -758,6 +786,8 @@ class Handler(BaseHTTPRequestHandler):
                     'xlsx_b64': base64.b64encode(xlsx).decode()
                 })
             except Exception as e:
+                print('ERROR DETALLADO:', flush=True)
+                print(traceback.format_exc(), flush=True)
                 self.send_json({'error': str(e)}, 500)
             return
 
