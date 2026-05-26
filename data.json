@@ -78,6 +78,12 @@
       "nombre": "ESTEBAN ALONSO LOPEZ FELIX",
       "role": "user",
       "pass_hash": "8563c823b156f8599947b5a59a1ec3fc3caf45a16799a442a088626ecbc42fe3"
+    },
+    {
+      "email": "angel.lopez@sinaloa.gob.mx",
+      "nombre": "JOSÉ ÁNGEL LÓPEZ FIERRO",
+      "role": "user",
+      "pass_hash": ""
     }
   ],
   "historial": [
