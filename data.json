@@ -432,6 +432,22 @@
       "email_ok": false,
       "generado_por": "lofe001027@gmail.com",
       "timestamp": "2026-06-08T16:36:43.349914"
+    },
+    {
+      "folio": "SE-SSGFF-0025/2026",
+      "fecha_exp": "03/06/2026",
+      "nombre": "ESTEBAN ALONSO LOPEZ FELIX",
+      "rfc": "LOFE0010277W2",
+      "cargo": "ASISTENTE",
+      "destino": "Navolato",
+      "fecha_ini": "08/06/2026",
+      "fecha_fin": "08/06/2026",
+      "programa": "EQUIPA SINALOA",
+      "total": 200.0,
+      "tipo": "Oficio",
+      "email_ok": true,
+      "generado_por": "lofe001027@gmail.com",
+      "timestamp": "2026-06-08T16:41:15.557644"
     }
   ]
 }
