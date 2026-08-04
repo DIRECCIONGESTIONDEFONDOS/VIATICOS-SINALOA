@@ -448,6 +448,22 @@
       "email_ok": true,
       "generado_por": "lofe001027@gmail.com",
       "timestamp": "2026-06-08T16:41:15.557644"
+    },
+    {
+      "folio": "SE-SSGFF-0026/2026",
+      "fecha_exp": "30/07/2026",
+      "nombre": "OSCAR ABRAHAM NAVARRO LOPEZ",
+      "rfc": "NALO941030",
+      "cargo": "DIRECTOR DE GESTIÓN DE FONDOS",
+      "destino": "Navolato",
+      "fecha_ini": "04/08/2026",
+      "fecha_fin": "04/08/2026",
+      "programa": "EQUIPA SINALOA",
+      "total": 750.0,
+      "tipo": "Oficio",
+      "email_ok": false,
+      "generado_por": "lofe001027@gmail.com",
+      "timestamp": "2026-08-04T00:32:01.103294"
     }
   ]
 }
